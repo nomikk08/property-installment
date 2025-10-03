@@ -35,3 +35,6 @@ createsuperuser:
 
 collectstatic:
 	$(MANAGE) "python manage.py collectstatic --no-input"
+
+tailwind:
+	$(MANAGE) "python manage.py tailwind install"

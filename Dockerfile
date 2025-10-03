@@ -14,6 +14,10 @@ RUN apt-get update \
     git \
   && rm -rf /var/lib/apt/lists/*
 
+# Install Node.js (LTS)
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
+
 ADD requirements.txt /root/.cache/
 RUN --mount=type=cache,id=property-pip,target=/root/.cache/pip pip install -U wheel pip
 RUN --mount=type=cache,id=property-pip,target=/root/.cache/pip pip install -r /root/.cache/requirements.txt

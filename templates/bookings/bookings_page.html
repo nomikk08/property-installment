@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto py-8">
+  <h1 class="text-2xl font-bold mb-6">My Bookings</h1>
+
+  {% if bookings %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white border rounded-lg shadow">
+        <thead>
+          <tr class="bg-gray-100 text-sm uppercase text-left">
+            <th class="py-3 px-4">Buyer</th>
+            <th class="py-3 px-4">Plot</th>
+            <th class="py-3 px-4">Plan</th>
+            <th class="py-3 px-4">Down Payment</th>
+            <th class="py-3 px-4">Monthly Installment</th>
+            <th class="py-3 px-4">Start Date</th>
+            <th class="py-3 px-4">Completed?</th>
+            <th class="py-3 px-4">Payments</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y">
+          {% for booking in bookings %}
+          <tr>
+            <td class="py-3 px-4">{{ booking.buyer.username }}</td>
+            <td class="py-3 px-4">{{ booking.plot.title }}</td>
+            <td class="py-3 px-4">
+              {{ booking.plan.name }} <br>
+              {{ booking.plan.duration_months }} months
+              {% if booking.plan.interest_rate %}
+                <br>Interest: {{ booking.plan.interest_rate }}%
+              {% endif %}
+            </td>
+            <td class="py-3 px-4">{{ booking.down_payment_amount }}</td>
+            <td class="py-3 px-4">{{ booking.monthly_installment }}</td>
+            <td class="py-3 px-4">{{ booking.start_date }}</td>
+            <td class="py-3 px-4">
+              {% if booking.is_completed %}
+                <span class="text-green-600 font-semibold">Yes</span>
+              {% else %}
+                <span class="text-red-600 font-semibold">No</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-4">
+              <ul class="space-y-2">
+                {% for payment in booking.payments.all %}
+                  <li class="flex items-center justify-between">
+                    <span>
+                      {{ payment.due_date }} — {{ payment.amount }}
+                    </span>
+                    {% if payment.is_paid %}
+                      <span class="text-green-600 font-semibold">Paid on {{ payment.paid_date }}</span>
+                    {% else %}
+                      <span class="text-red-600 font-semibold">Pending</span>
+                    {% endif %}
+                  </li>
+                {% empty %}
+                  <li>No payments yet</li>
+                {% endfor %}
+              </ul>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-gray-600">No bookings found.</p>
+  {% endif %}
+</div>
+{% endblock %}

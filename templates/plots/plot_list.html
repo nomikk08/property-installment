@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h1>Plots</h1>
+
+    <!-- Filter Form -->
+    <form method="get" class="mb-4">
+        <label for="plan">Installment Plan:</label>
+        <select name="plan" id="plan">
+            <option value="">All</option>
+            {% for plan in plans %}
+                <option value="{{ plan.id }}" {% if selected_plan == plan.id|stringformat:"s" %}selected{% endif %}>
+                    {{ plan.name }} ({{ plan.duration_months }} months)
+                </option>
+            {% endfor %}
+        </select>
+
+        <label for="status">Status:</label>
+        <select name="status" id="status">
+            <option value="">All</option>
+            <option value="available" {% if selected_status == "available" %}selected{% endif %}>Available</option>
+            <option value="reserved" {% if selected_status == "reserved" %}selected{% endif %}>Reserved</option>
+            <option value="sold" {% if selected_status == "sold" %}selected{% endif %}>Sold</option>
+        </select>
+
+        <button type="submit">Filter</button>
+    </form>
+
+    <!-- Plot Cards -->
+    <div class="grid grid-cols-3 gap-6">
+        {% for plot in plots %}
+            <div class="p-4 border rounded shadow">
+                <h2 class="text-lg font-bold">{{ plot.title }}</h2>
+                <p>📍 {{ plot.location }}</p>
+                <p>📏 {{ plot.size_sq_yards }} sq. yards</p>
+                <p>💰 {{ plot.price }}</p>
+                <p>Status: <strong>{{ plot.get_status_display }}</strong></p>
+
+                <!-- Show installment details -->
+                {% if plot.booking %}
+                    <h3 class="mt-2 text-blue-600">Chosen Installment Plan:</h3>
+                    <p>Plan: {{ plot.booking.plan.name }}</p>
+                    <p>Down Payment: {{ plot.booking.down_payment_amount }}</p>
+                    <p>Monthly: {{ plot.booking.monthly_installment }}</p>
+                    <p>Duration: {{ plot.booking.plan.duration_months }} months</p>
+                    <p>Interest: {{ plot.booking.plan.interest_rate }}%</p>
+                {% else %}
+                    <h3 class="mt-2 text-green-600">Available Plans:</h3>
+                    <ul>
+                        {% for plan in plans %}
+                            <li>
+                                {{ plan.name }}: {{ plan.down_payment_percent }}% down,
+                                {{ plan.duration_months }} months, 
+                                Interest {{ plan.interest_rate }}%
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% empty %}
+            <p>No plots found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

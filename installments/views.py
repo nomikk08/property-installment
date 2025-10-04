@@ -17,3 +17,6 @@ def home(request):
         "featured_plots": featured_plots,
     }
     return render(request, "home.html", context)
+
+def contact(request):
+    return render(request, "contact.html")

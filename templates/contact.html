@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-16 px-6">
+  <h1 class="text-4xl font-bold text-center mb-8">Contact Us</h1>
+  
+  <div class="bg-white shadow-md rounded-2xl p-8">
+    <p class="text-lg mb-6 text-gray-700 text-center">
+      Get in touch with us using the details below.
+    </p>
+    
+    <div class="grid md:grid-cols-2 gap-8 text-gray-800">
+      <!-- Address -->
+      <div class="flex items-start space-x-4">
+        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c.5304 0 1.0391-.2107 1.4142-.5858C13.7893 10.0391 14 9.5304 14 9c0-1.1046-.8954-2-2-2s-2 .8954-2 2c0 .5304.2107 1.0391.5858 1.4142C10.9609 10.7893 11.4696 11 12 11z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22c4-4.4183 8-8.8366 8-13A8 8 0 004 9c0 4.1634 4 8.5817 8 13z" />
+        </svg>
+        <div>
+          <h3 class="text-xl font-semibold">Office Address</h3>
+          <p>123 Housing Society Road,</p>
+          <p>Tando Allahyar, Pakistan</p>
+        </div>
+      </div>
+
+      <!-- Phone -->
+      <div class="flex items-start space-x-4">
+        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h1.586A1 1 0 017.414 4.586L9 6.172a1 1 0 01.293.707V9a1 1 0 01-.293.707L7.414 11.586A1 1 0 017 12.172V13a1 1 0 01-.293.707L5.414 15.586A1 1 0 015 16.172V18a2 2 0 002 2h2.172a1 1 0 01.707-.293L11.586 18a1 1 0 01.707-.293H14a1 1 0 01.707.293l1.879 1.879A1 1 0 0117 21.172V22a2 2 0 002 2h1a2 2 0 002-2V3a2 2 0 00-2-2h-1a2 2 0 00-2 2v.828a1 1 0 01-.293.707L14.414 5.414A1 1 0 0114 6h-2.172a1 1 0 01-.707-.293L9.414 4.414A1 1 0 019 3.828V3a2 2 0 00-2-2H5a2 2 0 00-2 2v2z" />
+        </svg>
+        <div>
+          <h3 class="text-xl font-semibold">Phone</h3>
+          <p>+92 300 1234567</p>
+          <p>+92 42 9876543</p>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="flex items-start space-x-4">
+        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8h18a2 2 0 002-2V8a2 2 0 00-2-2H3a2 2 0 00-2 2v6a2 2 0 002 2z" />
+        </svg>
+        <div>
+          <h3 class="text-xl font-semibold">Email</h3>
+          <p>info@realestate.com</p>
+          <p>support@realestate.com</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

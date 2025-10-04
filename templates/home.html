@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="relative bg-gray-900 text-white py-20 text-center">
+  <div class="container mx-auto px-6">
+    <h1 class="text-4xl md:text-6xl font-bold mb-4">Welcome to Abrar Green City Project</h1>
+    <p class="text-lg md:text-xl mb-6">Find your dream residential or commercial plot with flexible options</p>
+    <a href="{% url 'plot_list' %}" 
+       class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded shadow-lg">
+       View Available Plots
+    </a>
+  </div>
+</section>
+
+<!-- Plotting Map -->
+<section class="py-16 bg-gray-50">
+  <div class="container mx-auto px-6 text-center">
+    <h2 class="text-2xl font-bold mb-6">Project Layout Map</h2>
+    <img src="{% static 'images/plotting-map.png' %}" alt="Plotting Map" class="mx-auto rounded shadow-lg max-w-4xl">
+  </div>
+</section>
+
+<!-- Quick Stats -->
+<section class="py-16">
+  <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+    <div class="p-6 bg-white shadow rounded">
+      <h3 class="text-3xl font-bold text-blue-600">{{ total_plots }}</h3>
+      <p class="text-gray-600">Total Plots</p>
+    </div>
+    <div class="p-6 bg-white shadow rounded">
+      <h3 class="text-3xl font-bold text-green-600">{{ available }}</h3>
+      <p class="text-gray-600">Available</p>
+    </div>
+    <div class="p-6 bg-white shadow rounded">
+      <h3 class="text-3xl font-bold text-yellow-600">{{ reserved }}</h3>
+      <p class="text-gray-600">Reserved</p>
+    </div>
+    <div class="p-6 bg-white shadow rounded md:col-span-3">
+      <h3 class="text-3xl font-bold text-red-600">{{ sold }}</h3>
+      <p class="text-gray-600">Sold</p>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Plots -->
+<section class="py-16 bg-gray-50">
+  <div class="container mx-auto px-6">
+    <h2 class="text-2xl font-bold mb-6 text-center">Featured Plots</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for plot in featured_plots %}
+      <div class="p-4 border rounded shadow hover:shadow-lg transition">
+        <h3 class="text-lg font-bold">{{ plot.title }}</h3>
+        <p>📍 {{ plot.location }}</p>
+        <p>🏷️ {{ plot.get_plot_type_display }}</p>
+        <p>📏 {{ plot.size_sqft }} sqft</p>
+        <p>💰 Rs. {{ plot.price }}</p>
+        <a href="{% url 'plot_list' %}?status=available" class="text-blue-600 hover:underline">View Details</a>
+      </div>
+      {% empty %}
+      <p>No featured plots available.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-16 bg-blue-600 text-white text-center">
+  <div class="container mx-auto px-6">
+    <h2 class="text-3xl font-bold mb-4">Ready to Book Your Plot?</h2>
+    <p class="mb-6">Contact us today and secure your future investment.</p>
+    <a href="/contact" class="bg-white text-blue-600 px-6 py-3 rounded font-bold hover:bg-gray-100">
+      Get in Touch
+    </a>
+  </div>
+</section>
+
+{% endblock %}

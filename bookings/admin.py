@@ -5,7 +5,6 @@ from .models import Booking, Payment
 class PaymentInline(admin.TabularInline):
     model = Payment
     extra = 0
-    readonly_fields = ("due_date", "amount", "is_paid")
 
 
 @admin.register(Booking)

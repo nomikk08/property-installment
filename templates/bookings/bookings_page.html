@@ -21,7 +21,7 @@
         <tbody class="divide-y">
           {% for booking in bookings %}
           <tr>
-            <td class="py-3 px-4">{{ booking.buyer.username }}</td>
+            <td class="py-3 px-4">{{ booking.buyer.name }}</td>
             <td class="py-3 px-4">{{ booking.plot.title }}</td>
             <td class="py-3 px-4">
               {{ booking.plan.name }} <br>

@@ -1,16 +1,14 @@
 from django.db import models
 
 from accounts.models import Buyer
-from plots.models import InstallmentPlan, Plot
+from plots.models import Plot
 from django.db.models import Sum
 
 
 class Booking(models.Model):
     buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="bookings")
-    plot = models.OneToOneField(
-        Plot, on_delete=models.CASCADE
-    )  # One plot → One booking
-    plan = models.ForeignKey(InstallmentPlan, on_delete=models.CASCADE)
+    plot = models.OneToOneField(Plot, on_delete=models.CASCADE)
+    installment_months = models.IntegerField(default=24)
     down_payment_amount = models.DecimalField(max_digits=12, decimal_places=2)
     monthly_installment = models.DecimalField(max_digits=12, decimal_places=2)
     commission_paid = models.DecimalField(
@@ -24,7 +22,7 @@ class Booking(models.Model):
     is_completed = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.buyer.username} - {self.plot.title}"
+        return f"{self.buyer.name} - {self.plot.title}"
 
     @property
     def total_paid_amount(self):
@@ -33,8 +31,13 @@ class Booking(models.Model):
         )
         return total or 0
 
+    @property
+    def plot_price(self):
+        return self.plot.price if self.plot else 0
+
 
 class Payment(models.Model):
+    # ToDo: create first installment when booking is created and auto add installments on the basis of pervious installments and remaining month.
     booking = models.ForeignKey(
         Booking, on_delete=models.CASCADE, related_name="payments"
     )

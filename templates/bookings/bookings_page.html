@@ -10,7 +10,7 @@
           <tr class="bg-gray-100 text-sm uppercase text-left">
             <th class="py-3 px-4">Buyer</th>
             <th class="py-3 px-4">Plot</th>
-            <th class="py-3 px-4">Plan</th>
+            <th class="py-3 px-4">Total Installments</th>
             <th class="py-3 px-4">Down Payment</th>
             <th class="py-3 px-4">Monthly Installment</th>
             <th class="py-3 px-4">Start Date</th>
@@ -24,10 +24,7 @@
             <td class="py-3 px-4">{{ booking.buyer.name }}</td>
             <td class="py-3 px-4">{{ booking.plot.title }}</td>
             <td class="py-3 px-4">
-              {{ booking.plan.name }} <br>
-              {{ booking.plan.duration_months }} months
-              {% if booking.plan.interest_rate %}
-                <br>Interest: {{ booking.plan.interest_rate }}%
+              {{ booking.installment_months }} months
               {% endif %}
             </td>
             <td class="py-3 px-4">{{ booking.down_payment_amount }}</td>

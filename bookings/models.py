@@ -26,10 +26,13 @@ class Booking(models.Model):
 
     @property
     def total_paid_amount(self):
-        total = self.payments.filer(is_paid=True).aggregate(
-            total=Sum("amount")["total"]
+        total = (
+            self.payments.filter(is_paid=True).aggregate(total=Sum("amount"))["total"]
+            or 0
         )
-        return total or 0
+        if self.down_payment_amount:
+            total += self.down_payment_amount
+        return total
 
     @property
     def plot_price(self):

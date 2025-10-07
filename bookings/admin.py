@@ -25,10 +25,3 @@ class BookingAdmin(admin.ModelAdmin):
         "total_paid_amount",
     )
     inlines = [PaymentInline]
-
-
-@admin.register(Payment)
-class PaymentAdmin(admin.ModelAdmin):
-    list_display = ("booking", "amount", "due_date", "paid_date", "is_paid")
-    list_filter = ("is_paid", "due_date")
-    search_fields = ("booking__buyer__username", "booking__plot__title")

@@ -10,6 +10,7 @@
           <tr class="bg-gray-100 text-sm uppercase text-left">
             <th class="py-3 px-4">Buyer</th>
             <th class="py-3 px-4">Plot</th>
+            <th class="py-3 px-4">Plot Price</th>
             <th class="py-3 px-4">Total Installments</th>
             <th class="py-3 px-4">Down Payment</th>
             <th class="py-3 px-4">Monthly Installment</th>
@@ -23,9 +24,9 @@
           <tr>
             <td class="py-3 px-4">{{ booking.buyer.name }}</td>
             <td class="py-3 px-4">{{ booking.plot.title }}</td>
+            <td class="py-3 px-4">{{ booking.plot.price }}</td>
             <td class="py-3 px-4">
               {{ booking.installment_months }} months
-              {% endif %}
             </td>
             <td class="py-3 px-4">{{ booking.down_payment_amount }}</td>
             <td class="py-3 px-4">{{ booking.monthly_installment }}</td>

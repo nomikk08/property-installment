@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto py-8">
+  <h1 class="text-2xl font-bold mb-4">Expenses</h1>
+
+  <div class="bg-gray-100 p-4 rounded mb-6">
+    <p class="text-lg font-semibold">Total Expenses: <span class="text-red-600">Rs {{ total_expense }}</span></p>
+  </div>
+
+  <table class="min-w-full bg-white border rounded shadow">
+    <thead class="bg-gray-200">
+      <tr class="text-left">
+        <th class="py-2 px-4">Title</th>
+        <th class="py-2 px-4">Category</th>
+        <th class="py-2 px-4">Amount</th>
+        <th class="py-2 px-4">Date</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y">
+      {% for expense in expenses %}
+      <tr>
+        <td class="py-2 px-4">{{ expense.title }}</td>
+        <td class="py-2 px-4">{{ expense.get_category_display }}</td>
+        <td class="py-2 px-4">{{ expense.amount }}</td>
+        <td class="py-2 px-4">{{ expense.date }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="text-center py-4">No expenses added yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'accounts',
     'bookings',
     'plots',
+    'expenses',
 
     "tailwind",
     "theme",

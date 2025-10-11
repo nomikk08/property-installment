@@ -1,0 +1,140 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="max-w-6xl mx-auto py-10 px-6">
+  <a
+    href="{% url 'bookings_page' %}"
+    class="text-blue-600 hover:underline mb-4 inline-block"
+    >← Back to Bookings</a
+  >
+
+  <!-- 🔹 Remaining Balance Summary -->
+  <div
+    class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded"
+  >
+    <p class="text-lg">
+      💰 <strong>Remaining Balance:</strong>
+      Rs {{ booking.plot_price }}
+    </p>
+  </div>
+
+  <h1 class="text-2xl font-bold mb-6">
+    Booking Details — {{ booking.plot.title }}
+  </h1>
+
+  <!-- Summary Sections (same as before but kept clean) -->
+  <div class="grid md:grid-cols-3 gap-6 mb-8">
+    <!-- Booking Summary -->
+    <div class="bg-white shadow-md p-6 rounded-lg border">
+      <h2 class="text-lg font-semibold mb-2">Booking Summary</h2>
+      <p>
+        <strong>Total Installments:</strong> {{ booking.installment_months }}
+      </p>
+      <p><strong>Monthly:</strong> Rs {{ booking.monthly_installment }}</p>
+      <p><strong>Down Payment:</strong> Rs {{ booking.down_payment_amount }}</p>
+      <p><strong>Total Paid:</strong> Rs {{ booking.total_paid_amount }}</p>
+      <p>
+        <strong>Remaining Months:</strong> {{ booking.remaining_installments }}
+      </p>
+      <p>
+        <strong>Status:</strong>
+        {% if booking.is_completed %}
+        <span class="px-2 py-1 text-sm bg-green-100 text-green-700 rounded"
+          >✅ Completed</span
+        >
+        {% else %}
+        <span class="px-2 py-1 text-sm bg-red-100 text-red-700 rounded"
+          >⏳ In Progress</span
+        >
+        {% endif %}
+      </p>
+    </div>
+
+    <!-- Plot Details -->
+    <div class="bg-white shadow-md p-6 rounded-lg border">
+      <h2 class="text-lg font-semibold mb-2">Plot Details</h2>
+      <p><strong>Plot Number:</strong> {{ booking.plot.title }}</p>
+      <p><strong>Location:</strong> {{ booking.plot.location }}</p>
+      <p><strong>Type:</strong> {{ booking.plot.plot_type|title }}</p>
+      <p><strong>Size:</strong> {{ booking.plot.size_sqft }} sqft</p>
+      <p><strong>Price:</strong> Rs {{ booking.plot.price }}</p>
+    </div>
+
+    <!-- Buyer Details -->
+    <div class="bg-white shadow-md p-6 rounded-lg border">
+      <h2 class="text-lg font-semibold mb-2">Buyer Details</h2>
+      <p><strong>Name:</strong> {{ booking.buyer.name }}</p>
+      <p><strong>CNIC:</strong> {{ booking.buyer.cnic }}</p>
+      <p><strong>Contact:</strong> {{ booking.buyer.contact_no }}</p>
+    </div>
+  </div>
+
+  <!-- Payment Schedule -->
+  <h2 class="text-xl font-semibold mb-4">Payment Schedule</h2>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white border rounded-lg shadow">
+      <thead>
+        <tr class="bg-gray-100 text-sm uppercase text-left">
+          <th class="py-3 px-4">#</th>
+          <th class="py-3 px-4">Due Date</th>
+          <th class="py-3 px-4">Amount</th>
+          <th class="py-3 px-4">Status</th>
+          <th class="py-3 px-4">Paid Date</th>
+          <th class="py-3 px-4">Action</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        {% for payment in payments %}
+        <tr class="{% if payment.is_next_due %}bg-yellow-50{% endif %}">
+          <td class="py-3 px-4">{{ forloop.counter }}</td>
+          <td class="py-3 px-4">{{ payment.due_date }}</td>
+          <td class="py-3 px-4">Rs {{ payment.amount }}</td>
+          <td class="py-3 px-4">
+            {% if payment.is_paid %}
+            <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded"
+              >Paid ✅</span
+            >
+            {% elif payment.is_next_due %}
+            <span
+              class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded"
+              >Next Due ⚠</span
+            >
+            {% else %}
+            <span class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded"
+              >Pending ⏳</span
+            >
+            {% endif %}
+          </td>
+          <td class="py-3 px-4">{{ payment.paid_date|default:"—" }}</td>
+          <td class="py-3 px-4">
+            {% if not payment.is_paid %}
+            <form
+              action="{% url 'mark_payment_paid' payment.id %}"
+              method="post"
+              onsubmit="return confirm('Are you sure you want to mark this payment as PAID?');"
+            >
+              {% csrf_token %}
+              <button
+                class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+                {%
+                if
+                payment.is_paid
+                %}disabled{%
+                endif
+                %}
+              >
+                Mark as Paid
+              </button>
+            </form>
+            {% else %}
+            <span class="text-gray-500 text-sm">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

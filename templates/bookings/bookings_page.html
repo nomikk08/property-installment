@@ -1,68 +1,43 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="max-w-6xl mx-auto py-8">
   <h1 class="text-2xl font-bold mb-6">My Bookings</h1>
 
   {% if bookings %}
-    <div class="overflow-x-auto">
-      <table class="min-w-full bg-white border rounded-lg shadow">
-        <thead>
-          <tr class="bg-gray-100 text-sm uppercase text-left">
-            <th class="py-3 px-4">Buyer</th>
-            <th class="py-3 px-4">Plot</th>
-            <th class="py-3 px-4">Plot Price</th>
-            <th class="py-3 px-4">Total Installments</th>
-            <th class="py-3 px-4">Down Payment</th>
-            <th class="py-3 px-4">Monthly Installment</th>
-            <th class="py-3 px-4">Start Date</th>
-            <th class="py-3 px-4">Completed?</th>
-            <th class="py-3 px-4">Payments</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y">
-          {% for booking in bookings %}
-          <tr>
-            <td class="py-3 px-4">{{ booking.buyer.name }}</td>
-            <td class="py-3 px-4">{{ booking.plot.title }}</td>
-            <td class="py-3 px-4">{{ booking.plot.price }}</td>
-            <td class="py-3 px-4">
-              {{ booking.installment_months }} months
-            </td>
-            <td class="py-3 px-4">{{ booking.down_payment_amount }}</td>
-            <td class="py-3 px-4">{{ booking.monthly_installment }}</td>
-            <td class="py-3 px-4">{{ booking.start_date }}</td>
-            <td class="py-3 px-4">
-              {% if booking.is_completed %}
-                <span class="text-green-600 font-semibold">Yes</span>
-              {% else %}
-                <span class="text-red-600 font-semibold">No</span>
-              {% endif %}
-            </td>
-            <td class="py-3 px-4">
-              <ul class="space-y-2">
-                {% for payment in booking.payments.all %}
-                  <li class="flex items-center justify-between">
-                    <span>
-                      {{ payment.due_date }} — {{ payment.amount }}
-                    </span>
-                    {% if payment.is_paid %}
-                      <span class="text-green-600 font-semibold">Paid on {{ payment.paid_date }}</span>
-                    {% else %}
-                      <span class="text-red-600 font-semibold">Pending</span>
-                    {% endif %}
-                  </li>
-                {% empty %}
-                  <li>No payments yet</li>
-                {% endfor %}
-              </ul>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white border rounded-lg shadow">
+      <thead>
+        <tr class="bg-gray-100 text-sm uppercase text-left">
+          <th class="py-3 px-4">Plot</th>
+          <th class="py-3 px-4">Buyer Name</th>
+          <th class="py-3 px-4">CNIC</th>
+          <th class="py-3 px-4">Paid Installments</th>
+          <th class="py-3 px-4">Remaining Installments</th>
+          <th class="py-3 px-4">Action</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        {% for booking in bookings %}
+        <tr>
+          <td class="py-3 px-4">{{ booking.plot.title }}</td>
+          <td class="py-3 px-4">{{ booking.buyer.name }}</td>
+          <td class="py-3 px-4">{{ booking.buyer.cnic }}</td>
+          <td class="py-3 px-4">{{ booking.paid_installments }}</td>
+          <td class="py-3 px-4">{{ booking.remaining_installments }}</td>
+          <td class="py-3 px-4">
+            <a
+              href="{% url 'booking_detail' booking.id %}"
+              class="text-blue-600 font-semibold hover:underline"
+            >
+              View Details →
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
-    <p class="text-gray-600">No bookings found.</p>
+  <p class="text-gray-600">No bookings found.</p>
   {% endif %}
 </div>
 {% endblock %}

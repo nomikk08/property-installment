@@ -38,6 +38,14 @@ class Booking(models.Model):
     def plot_price(self):
         return self.plot.price if self.plot else 0
 
+    @property
+    def paid_installments(self):
+        return self.payments.filter(is_paid=True).count()
+
+    @property
+    def remaining_installments(self):
+        return self.installment_months - self.paid_installments
+
 
 class Payment(models.Model):
     booking = models.ForeignKey(
@@ -50,3 +58,10 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.booking.plot.title} - {self.amount} - {'Paid' if self.is_paid else 'Pending'}"
+
+    @property
+    def is_next_due(self):
+        unpaid_payments = self.booking.payments.filter(is_paid=False).order_by(
+            "due_date"
+        )
+        return unpaid_payments.exists() and unpaid_payments.first().id == self.id

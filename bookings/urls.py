@@ -3,4 +3,10 @@ from . import views
 
 urlpatterns = [
     path("", views.bookings_page, name="bookings_page"),
+    path("bookings/<int:booking_id>/", views.booking_detail, name="booking_detail"),
+    path(
+        "payments/<int:payment_id>/mark-paid/",
+        views.mark_payment_paid,
+        name="mark_payment_paid",
+    ),
 ]

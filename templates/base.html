@@ -1,76 +1,104 @@
-{% load static tailwind_tags %}
-{% load static %}
+{% load static tailwind_tags %} {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Abrar Green City{% endblock %}</title>
 
     {# Tailwind CSS #}
-    <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
+    <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet" />
 
     {% block extra_head %}{% endblock %}
-</head>
-<body class="bg-gray-100 text-gray-800">
+  </head>
+  <body class="bg-gray-100 text-gray-800">
+    {% if messages %}
+    <div class="max-w-3xl mx-auto mt-4">
+      {% for message in messages %}
+      <div
+        class="px-4 py-2 rounded mb-2 {% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-300 {% elif message.tags == 'error' %}bg-red-100 text-red-700 border border-red-300{% endif %}"
+      >
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
     <!-- Navbar -->
     <header class="bg-white shadow">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            
-            <!-- Logo -->
-            <h1 class="text-xl font-bold">
-                <a href="/">🏠 Abrar Green City</a>
-            </h1>
+      <div
+        class="container mx-auto px-4 py-4 flex justify-between items-center"
+      >
+        <!-- Logo -->
+        <h1 class="text-xl font-bold">
+          <a href="/">🏠 Abrar Green City</a>
+        </h1>
 
-            <!-- Hamburger Button (Mobile) -->
-            <button id="menu-toggle" class="md:hidden text-gray-700 focus:outline-none">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-            </button>
+        <!-- Hamburger Button (Mobile) -->
+        <button
+          id="menu-toggle"
+          class="md:hidden text-gray-700 focus:outline-none"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
 
-            <!-- Nav Links -->
-            <nav id="menu" class="hidden md:flex md:items-center">
-                <ul class="flex flex-col md:flex-row md:space-x-6 space-y-4 md:space-y-0 mt-4 md:mt-0">
-                    <li><a href="/" class="hover:text-blue-500">Home</a></li>
-                    <li><a href="/plots/" class="hover:text-blue-500">Plots</a></li>
-                    <li><a href="/bookings/" class="hover:text-blue-500">Bookings</a></li>
-                    <li><a href="/expenses/" class="hover:text-blue-500">Expenses</a></li>
-                    <li><a href="/contact/" class="hover:text-blue-500">Contact</a></li>
-                </ul>
-            </nav>
-        </div>
+        <!-- Nav Links -->
+        <nav id="menu" class="hidden md:flex md:items-center">
+          <ul
+            class="flex flex-col md:flex-row md:space-x-6 space-y-4 md:space-y-0 mt-4 md:mt-0"
+          >
+            <li><a href="/" class="hover:text-blue-500">Home</a></li>
+            <li><a href="/plots/" class="hover:text-blue-500">Plots</a></li>
+            <li>
+              <a href="/bookings/" class="hover:text-blue-500">Bookings</a>
+            </li>
+            <li>
+              <a href="/expenses/" class="hover:text-blue-500">Expenses</a>
+            </li>
+            <li><a href="/contact/" class="hover:text-blue-500">Contact</a></li>
+          </ul>
+        </nav>
+      </div>
     </header>
 
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-8">
-        {% block content %}
-        <!-- Page-specific content will go here -->
-        {% endblock %}
+      {% block content %}
+      <!-- Page-specific content will go here -->
+      {% endblock %}
     </main>
 
     <!-- Footer -->
     <footer class="bg-gray-900 text-gray-300 py-6 mt-8">
-        <div class="container mx-auto px-4 text-center">
-            <p>&copy; {{ now|date:"Y" }} Abrar Green City. All rights reserved.</p>
-        </div>
+      <div class="container mx-auto px-4 text-center">
+        <p>&copy; {{ now|date:"Y" }} Abrar Green City. All rights reserved.</p>
+      </div>
     </footer>
 
     {% block extra_scripts %}{% endblock %}
-</body>
+  </body>
 
-<!-- JS for toggling menu -->
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const toggle = document.getElementById("menu-toggle");
-    const menu = document.getElementById("menu");
-    toggle.addEventListener("click", () => {
-      menu.classList.toggle("hidden");
+  <!-- JS for toggling menu -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const toggle = document.getElementById("menu-toggle");
+      const menu = document.getElementById("menu");
+      toggle.addEventListener("click", () => {
+        menu.classList.toggle("hidden");
+      });
     });
-  });
-</script>
-
+  </script>
 </html>

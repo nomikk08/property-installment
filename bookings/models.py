@@ -40,7 +40,6 @@ class Booking(models.Model):
 
 
 class Payment(models.Model):
-    # ToDo: create first installment when booking is created and auto add installments on the basis of pervious installments and remaining month.
     booking = models.ForeignKey(
         Booking, on_delete=models.CASCADE, related_name="payments"
     )

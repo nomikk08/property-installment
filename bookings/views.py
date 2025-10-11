@@ -10,3 +10,4 @@ def bookings_page(request):
     )
 
     return render(request, "bookings/bookings_page.html", {"bookings": bookings})
+

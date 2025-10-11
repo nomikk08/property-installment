@@ -23,7 +23,6 @@ class Command(BaseCommand):
                         "length_ft": row.get("length_ft") or None,
                         "width_ft": row.get("width_ft") or None,
                         "size_sqft": row["size_sqft"],
-                        "size_sq_yards": row.get("size_sq_yards") or None,
                         "price": row["price"],
                         "price_per_sqft": row.get("price_per_sqft") or None,
                         "status": row.get("status", "available"),

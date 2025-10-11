@@ -40,4 +40,4 @@ tailwind:
 	$(MANAGE) "python manage.py tailwind install"
 
 add-plots:
-	$(MANAGE) "python manage.py import_data/plots-data/plots.csv"
+	$(MANAGE) "python manage.py import_plots plots-data/plots.csv"

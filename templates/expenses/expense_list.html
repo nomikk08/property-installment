@@ -1,12 +1,38 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="max-w-6xl mx-auto py-8">
+
   <h1 class="text-2xl font-bold mb-4">Expenses</h1>
 
+  <!-- 🔍 Filters -->
+  <form method="get" class="flex space-x-4 mb-4">
+    <select name="category" class="border px-2 py-1">
+      <option value="">All Categories</option>
+      {% for key, label in categories %}
+        <option value="{{ key }}" {% if selected_category == key %}selected{% endif %}>
+          {{ label }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <input type="date" name="date_from" value="{{ date_from }}" class="border px-2 py-1">
+    <input type="date" name="date_to" value="{{ date_to }}" class="border px-2 py-1">
+
+    <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded">Filter</button>
+
+    <!-- 📄 PDF Download — Keeps Filters -->
+    <a href="{% url 'download_expenses_pdf' %}?category={{ selected_category }}&date_from={{ date_from }}&date_to={{ date_to }}"
+       class="bg-gray-800 text-white px-3 py-1 rounded">
+       📄 Download PDF
+    </a>
+  </form>
+
+  <!-- Total -->
   <div class="bg-gray-100 p-4 rounded mb-6">
     <p class="text-lg font-semibold">Total Expenses: <span class="text-red-600">Rs {{ total_expense }}</span></p>
   </div>
 
+  <!-- Table -->
   <table class="min-w-full bg-white border rounded shadow">
     <thead class="bg-gray-200">
       <tr class="text-left">
@@ -25,9 +51,10 @@
         <td class="py-2 px-4">{{ expense.date }}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="4" class="text-center py-4">No expenses added yet.</td></tr>
+      <tr><td colspan="4" class="text-center py-4">No expenses found.</td></tr>
       {% endfor %}
     </tbody>
   </table>
+
 </div>
 {% endblock %}

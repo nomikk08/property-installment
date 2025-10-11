@@ -9,4 +9,9 @@ urlpatterns = [
         views.mark_payment_paid,
         name="mark_payment_paid",
     ),
+    path(
+        "<int:pk>/download-pdf/",
+        views.download_booking_pdf,
+        name="download_booking_pdf",
+    ),
 ]

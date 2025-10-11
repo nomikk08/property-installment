@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %} {% load math_filters %} {% block content %}
 
 <div class="max-w-6xl mx-auto py-10 px-6">
   <a
@@ -13,7 +13,7 @@
   >
     <p class="text-lg">
       💰 <strong>Remaining Balance:</strong>
-      Rs {{ booking.plot_price }}
+      Rs {{ booking.plot_price|subtract:booking.total_paid_amount }}
     </p>
   </div>
 

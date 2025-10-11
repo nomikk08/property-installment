@@ -1,0 +1,42 @@
+{% extends "base.html" %} {% block content %}
+<div class="max-w-6xl mx-auto py-10 px-6">
+  <h1 class="text-2xl font-bold mb-6">💰 Earnings Dashboard</h1>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-blue-50 p-4 border-l-4 border-blue-500 rounded">
+      <p class="text-sm text-gray-600">Total Plot Sales Value</p>
+      <p class="text-xl font-bold">Rs {{ total_plot_value }}</p>
+    </div>
+    <div class="bg-green-50 p-4 border-l-4 border-green-500 rounded">
+      <p class="text-sm text-gray-600">Total Received</p>
+      <p class="text-xl font-bold">Rs {{ total_received }}</p>
+    </div>
+    <div class="bg-yellow-50 p-4 border-l-4 border-yellow-500 rounded">
+      <p class="text-sm text-gray-600">Pending Amount</p>
+      <p class="text-xl font-bold">Rs {{ total_pending }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+    <div class="bg-red-50 p-4 border-l-4 border-red-500 rounded">
+      <p class="text-sm text-gray-600">Total Expenses</p>
+      <p class="text-xl font-bold">Rs {{ total_expenses }}</p>
+    </div>
+    <div class="bg-gray-100 p-4 border-l-4 border-gray-600 rounded">
+      <p class="text-sm text-gray-600">Net Profit</p>
+      <p
+        class="text-xl font-bold {% if net_profit > 0 %}text-green-600{% else %}text-red-600{% endif %}"
+      >
+        Rs {{ net_profit }}
+      </p>
+    </div>
+  </div>
+
+  <a
+    href="{% url 'download_earnings_pdf' %}"
+    class="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900"
+    >📄 Download Full Earnings Report</a
+  >
+</div>
+{% endblock %}

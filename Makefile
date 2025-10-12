@@ -18,6 +18,19 @@ destroy:
 logs:
 	docker compose logs -f web
 
+# Production targets
+build-prod:
+	docker compose -f docker-compose.prod.yml build --no-cache
+
+up-prod:
+	docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+down-prod:
+	docker compose -f docker-compose.prod.yml down
+
+logs-prod:
+	docker compose -f docker-compose.prod.yml logs -f
+
 shell:
 	$(MANAGE) "python manage.py shell"
 

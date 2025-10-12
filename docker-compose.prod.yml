@@ -1,0 +1,71 @@
+version: "3.9"
+
+x-environment: &default-environment
+  PYTHONUNBUFFERED: "1"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      target: runtime
+    image: abrargreen/web:latest
+    env_file:
+      - .env.prod
+    environment:
+      <<: *default-environment
+    depends_on:
+      - db
+    volumes:
+      - static_data:/var/www/data/static
+      - media_data:/var/www/data/media
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web
+    volumes:
+      - ./deploy/nginx:/etc/nginx/conf.d:ro
+      - static_data:/var/www/data/static:ro
+      - media_data:/var/www/data/media:ro
+      # - ./deploy/ssl:/etc/letsencrypt:ro   # if using certbot certs
+    restart: unless-stopped
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Optional: certbot service for automated letsencrypt (requires tweaks)
+  # certbot:
+  #   image: certbot/certbot
+  #   volumes:
+  #     - ./deploy/ssl:/etc/letsencrypt
+  #     - ./deploy/ssl-work:/var/lib/letsencrypt
+  #   entrypoint: /bin/sh
+  #   command: -c "trap exit TERM; while :; do sleep 12h & wait $${!}; certbot renew; done"
+  #   restart: unless-stopped
+
+volumes:
+  postgres_data:
+  static_data:
+  media_data:

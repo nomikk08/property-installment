@@ -1,0 +1,88 @@
+# ---------- NODE BUILD STAGE (Tailwind/PostCSS build) ----------
+FROM node:22-bullseye AS tailwind_builder
+
+WORKDIR /app
+
+# Copy entire project to allow Tailwind to scan Django templates
+COPY . .
+
+# Move into static_src where package.json lives
+WORKDIR /app/theme/static_src
+
+# Install Tailwind/PostCSS deps
+# COPY theme/static_src/package.json theme/static_src/package-lock.json ./
+RUN npm ci
+
+# Copy Tailwind source files
+COPY theme/static_src .
+
+# ✅ Production Tailwind Build
+RUN npm run build
+
+# ---------- PYTHON BUILD STAGE ----------
+FROM python:3.12-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Install Python & build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    ca-certificates \
+    libpq-dev \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install requirements
+COPY requirements.txt .
+RUN pip install --upgrade pip wheel && pip install -r requirements.txt
+
+# Copy Django project source
+COPY . .
+
+# ✅ Copy Tailwind-built assets into Django static folder BEFORE collectstatic
+COPY --from=tailwind_builder /app/theme/static /app/static
+
+# ✅ Collect static files to /var/www/data/static
+RUN python manage.py collectstatic --noinput || true
+
+# ---------- FINAL RUNTIME IMAGE ----------
+FROM python:3.12-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Install runtime deps (no build tools here)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    ca-certificates \
+    tini \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy built Django project + venv packages
+COPY --from=builder /usr/local/lib/python3.12 /usr/local/lib/python3.12
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /app /app
+
+# # Create user for security
+# RUN adduser --disabled-password --gecos "" appuser && chown -R appuser:appuser /app
+
+# # ✅ FIX: ensure Django can write static files when volume is mounted
+# RUN mkdir -p /var/www/data/static /var/www/data/media \
+# && chown -R appuser:appuser /var/www/data
+
+# USER appuser
+
+# Expose Gunicorn port
+EXPOSE 8000
+
+# Use tini as PID 1
+ENTRYPOINT ["/usr/bin/tini", "--"]
+
+# ✅ Run Gunicorn in production
+CMD ["sh", "-c", "python manage.py collectstatic --noinput && gunicorn installments.wsgi:application --bind 0.0.0.0:8000 --workers 4 --access-logfile - --error-logfile -"]

@@ -55,11 +55,18 @@ class Booking(models.Model):
 
 
 class Payment(models.Model):
+    RECEIVER_CHOICES = [
+        ("tasawur", "Tasawur"),
+        ("abdul_ghafoor", "Abdul Ghafoor"),
+    ]
     booking = models.ForeignKey(
         Booking, on_delete=models.CASCADE, related_name="payments"
     )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     due_date = models.DateField()
+    received_by = models.CharField(
+        max_length=50, choices=RECEIVER_CHOICES, default="abdul_ghafoor"
+    )
     paid_date = models.DateField(blank=True, null=True)
     is_paid = models.BooleanField(default=False)
 

@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required   
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.http import HttpResponse
@@ -35,9 +35,12 @@ def mark_payment_paid(request, payment_id):
     booking = payment.booking  # For redirect after marking paid
 
     # Update payment status
-    payment.is_paid = True
-    payment.paid_date = timezone.now().date()
-    payment.save()
+    if request.method == "POST":
+        received_by = request.POST.get("received_by")  # ✅ Get selected receiver
+        payment.is_paid = True
+        payment.paid_date = timezone.now().date()
+        payment.received_by = received_by  # ✅ Save receiver
+        payment.save()
 
     messages.success(
         request, f"Payment for {payment.due_date} marked as PAID successfully!"

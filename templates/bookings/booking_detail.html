@@ -90,6 +90,7 @@
           <th class="py-3 px-4">Amount</th>
           <th class="py-3 px-4">Status</th>
           <th class="py-3 px-4">Paid Date</th>
+          <th class="py-3 px-4">Recieved By</th>
           <th class="py-3 px-4">Action</th>
         </tr>
       </thead>
@@ -116,6 +117,22 @@
             {% endif %}
           </td>
           <td class="py-3 px-4">{{ payment.paid_date|default:"—" }}</td>
+          <!-- ✅ RECEIVED BY COLUMN -->
+          <td class="py-3 px-4">
+            {% if not payment.is_paid %}
+            <form method="post" action="{% url 'mark_payment_paid' payment.id %}">
+              {% csrf_token %}
+              <select name="received_by" class="border rounded px-2 py-1 text-sm">
+                <option value="tasawur">Tasawur</option>
+                <option value="abdul_ghafoor">Abdul Ghafoor</option>
+              </select>
+            {% else %}
+              <span class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded">
+                {{ payment.get_received_by_display }}
+              </span>
+            {% endif %}
+          </td>
+          <!-- ✅Action COLUMN -->
           <td class="py-3 px-4">
             {% if not payment.is_paid %}
             <form

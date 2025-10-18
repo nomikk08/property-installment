@@ -24,6 +24,13 @@ class Booking(models.Model):
     def __str__(self):
         return f"{self.buyer.name} - {self.plot.title}"
 
+    def save(self, *args, **kwargs):
+        created = self.pk is None  # Check if this is a new Booking
+        super().save(*args, **kwargs)
+        if created:
+            self.plot.status = "sold"  # or Plot.STATUS_SOLD if using choices constant
+            self.plot.save()
+
     @property
     def total_paid_amount(self):
         total = (

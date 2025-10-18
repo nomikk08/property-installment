@@ -40,7 +40,11 @@
     <!-- Plot Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for plot in plots %}
-            <div class="p-4 border rounded shadow hover:shadow-lg transition">
+            <div class="p-4 border rounded shadow hover:shadow-lg transition
+            {% if plot.status == 'available' %} bg-green-100 border-green-400 {% endif %}
+            {% if plot.status == 'sold' %} bg-red-100 border-red-400 {% endif %}
+            {% if plot.status == 'reserved' %} bg-yellow-100 border-yellow-400 {% endif %}
+            ">
                 <h2 class="text-lg font-bold">{{ plot.title }}</h2>
                 <p>📍 {{ plot.location }}</p>
                 <p>🏷️ Type: {{ plot.get_plot_type_display }}</p>

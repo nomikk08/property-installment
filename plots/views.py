@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from .models import Plot
+from django.contrib.auth.decorators import login_required
 
+
+@login_required
 def plot_list(request):
     plots = Plot.objects.all()
 

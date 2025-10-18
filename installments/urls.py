@@ -18,6 +18,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from . import views
+from django.contrib.auth.views import LoginView, LogoutView
+
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -27,4 +29,10 @@ urlpatterns = [
     path("bookings/", include("bookings.urls")),
     path("expenses/", include("expenses.urls")),
     path("", include("reports.urls")),
+    path(
+        "login/",
+        LoginView.as_view(template_name="login.html", redirect_authenticated_user=True),
+        name="login",
+    ),
+    path("logout/", LogoutView.as_view(next_page="login"), name="logout"),
 ]

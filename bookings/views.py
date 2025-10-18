@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required   
 from django.contrib import messages
 from django.utils import timezone
 from django.http import HttpResponse
@@ -9,7 +9,7 @@ from .models import Booking, Payment
 from reportlab.pdfgen import canvas
 
 
-# @login_required
+@login_required
 def bookings_page(request):
     bookings = Booking.objects.select_related("buyer", "plot").prefetch_related(
         "payments"
@@ -18,7 +18,7 @@ def bookings_page(request):
     return render(request, "bookings/bookings_page.html", {"bookings": bookings})
 
 
-# @login_required
+@login_required
 def booking_detail(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
     payments = booking.payments.order_by("due_date")
@@ -29,7 +29,7 @@ def booking_detail(request, booking_id):
     )
 
 
-# @login_required
+@login_required
 def mark_payment_paid(request, payment_id):
     payment = get_object_or_404(Payment, id=payment_id)
     booking = payment.booking  # For redirect after marking paid

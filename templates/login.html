@@ -1,0 +1,77 @@
+{% extends "base.html" %} {% load static %} {% block content %}
+
+<!-- Fullscreen Background Section -->
+<section
+  class="min-h-screen bg-gray-900 flex items-center justify-center text-white"
+>
+  <div
+    class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-700"
+  >
+    <h2 class="text-3xl font-bold text-center mb-6">Login to Continue</h2>
+
+    {% if form.errors %}
+    <div class="bg-red-600 text-white p-3 rounded mb-4 text-sm">
+      Invalid username or password. Please try again.
+    </div>
+    {% endif %}
+
+    <form method="POST" class="space-y-5">
+      {% csrf_token %}
+
+      <!-- Username -->
+      <div>
+        <label class="block text-gray-300 mb-1">Username</label>
+        <input
+          type="text"
+          name="username"
+          class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring-2 focus:ring-blue-500"
+          placeholder="Enter username"
+          required
+        />
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label class="block text-gray-300 mb-1">Password</label>
+        <div class="relative">
+          <input
+            type="password"
+            name="password"
+            id="password"
+            class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600 focus:border-blue-400 focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter password"
+            required
+          />
+          <!-- Show Password -->
+          <label class="flex items-center gap-2 mt-2 cursor-pointer">
+            <input type="checkbox" id="togglePassword" class="h-4 w-4" />
+            <span class="text-gray-300 text-sm">Show Password</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="w-full bg-blue-600 hover:bg-blue-700 transition py-2 rounded font-bold"
+      >
+        Login
+      </button>
+    </form>
+
+    <p class="text-sm text-center text-gray-400 mt-4">
+      Need access? Contact admin.
+    </p>
+  </div>
+</section>
+
+<script>
+  document
+    .getElementById("togglePassword")
+    .addEventListener("change", function () {
+      const passwordField = document.getElementById("password");
+      passwordField.type = this.checked ? "text" : "password";
+    });
+</script>
+
+{% endblock %}

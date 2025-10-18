@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 from datetime import datetime
 
-# @login_required
+@login_required
 def expense_list(request):
     expenses = Expense.objects.all().order_by("-date")
 

@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from plots.models import Plot
+from django.contrib.auth.decorators import login_required
 
+
+@login_required
 def home(request):
     total_plots = Plot.objects.count()
     available = Plot.objects.filter(status="available").count()
@@ -17,6 +20,7 @@ def home(request):
         "featured_plots": featured_plots,
     }
     return render(request, "home.html", context)
+
 
 def contact(request):
     return render(request, "contact.html")

@@ -14,4 +14,7 @@ urlpatterns = [
         views.download_booking_pdf,
         name="download_booking_pdf",
     ),
+    path("create-booking/", views.create_booking_combined, name="create_booking_combined"),
+    path("api/plot/<int:pk>/", views.api_get_plot, name="api_get_plot"),
+    path("api/buyer/<int:pk>/", views.api_get_buyer, name="api_get_buyer"),
 ]

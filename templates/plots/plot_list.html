@@ -48,7 +48,7 @@
                 <h2 class="text-lg font-bold">{{ plot.title }}</h2>
                 <p>📍 {{ plot.location }}</p>
                 <p>🏷️ Type: {{ plot.get_plot_type_display }}</p>
-                <p>📏 {{ plot.size_sqft }} sqft ({{ plot.size_sq_yards }} sq. yards)</p>
+                <p>📏 {{ plot.size_sqft }} sqft</p>
                 <p>💰 Price: Rs. {{ plot.price }}</p>
                 {% if plot.price_per_sqft %}<p>⚖️ Rs. {{ plot.price_per_sqft }} / sqft</p>{% endif %}
                 <p>Status: <strong>{{ plot.get_status_display }}</strong></p>

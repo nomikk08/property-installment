@@ -9,6 +9,22 @@ from expenses.models import Expense
 
 from datetime import datetime
 from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import inch
+
+def parse_flexible_date(date_str):
+    """Try parsing date in multiple formats."""
+    if not date_str:
+        return timezone.now().date()
+
+    for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%b. %d, %Y", "%b %d, %Y"):
+        try:
+            return datetime.strptime(date_str, fmt).date()
+        except ValueError:
+            continue
+
+    # Fallback to today if no format matched
+    return timezone.now().date()
 
 
 def earnings_page(request):
@@ -143,11 +159,7 @@ def download_earnings_pdf(request):
 
 def daily_report(request):
     # Get selected date or default to today
-    date_str = request.GET.get("date")
-    if date_str:
-        selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-    else:
-        selected_date = timezone.now().date()
+    selected_date = parse_flexible_date(request.GET.get("date"))
 
     # ✅ Expenses for the day
     daily_expenses = Expense.objects.filter(date=selected_date)
@@ -185,3 +197,91 @@ def daily_report(request):
 
     return render(request, "reports/daily_report.html", context)
 
+def download_daily_report_pdf(request):
+    
+    selected_date = parse_flexible_date(request.GET.get("date"))
+
+    daily_expenses = Expense.objects.filter(date=selected_date)
+    total_expenses = daily_expenses.aggregate(total=Sum("amount"))["total"] or 0
+
+    daily_bookings = Booking.objects.filter(start_date=selected_date)
+    total_booking_income = (
+        daily_bookings.aggregate(total=Sum("down_payment_amount"))["total"] or 0
+    )
+
+    daily_installments = Payment.objects.filter(
+        is_paid=True, paid_date=selected_date
+    ).select_related("booking")
+    total_installment_income = (
+        daily_installments.aggregate(total=Sum("amount"))["total"] or 0
+    )
+
+    total_income = total_booking_income + total_installment_income
+    net_profit = total_income - total_expenses
+
+    # ✅ Generate PDF
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f"attachment; filename=Daily_Report_{selected_date}.pdf"
+
+    p = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+    y = height - inch
+
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(180, y, f"Daily Income & Expenses Report")
+    y -= 25
+    p.setFont("Helvetica", 12)
+    p.drawString(220, y, f"Date: {selected_date}")
+    y -= 40
+
+    # --- Income Section ---
+    p.setFont("Helvetica-Bold", 13)
+    p.drawString(50, y, "💰 Income")
+    y -= 20
+    p.setFont("Helvetica", 10)
+
+    for b in daily_bookings:
+        p.drawString(60, y, f"Booking - {b.buyer.name} — Rs {b.down_payment_amount}")
+        y -= 15
+        if y < 50:
+            p.showPage()
+            y = height - inch
+
+    for pay in daily_installments:
+        p.drawString(60, y, f"Installment - {pay.booking.buyer.name} — Rs {pay.amount}")
+        y -= 15
+        if y < 50:
+            p.showPage()
+            y = height - inch
+
+    y -= 10
+    p.setFont("Helvetica-Bold", 11)
+    p.drawString(60, y, f"Total Income: Rs {total_income}")
+    y -= 30
+
+    # --- Expenses Section ---
+    p.setFont("Helvetica-Bold", 13)
+    p.drawString(50, y, "💸 Expenses")
+    y -= 20
+    p.setFont("Helvetica", 10)
+
+    for exp in daily_expenses:
+        p.drawString(60, y, f"{exp.title} ({exp.category.name}) — Rs {exp.amount}")
+        y -= 15
+        if y < 50:
+            p.showPage()
+            y = height - inch
+
+    y -= 10
+    p.setFont("Helvetica-Bold", 11)
+    p.drawString(60, y, f"Total Expenses: Rs {total_expenses}")
+    y -= 40
+
+    # --- Net Profit/Loss ---
+    p.setFont("Helvetica-Bold", 13)
+    color = "Profit" if net_profit >= 0 else "Loss"
+    p.drawString(50, y, f"Net {color}: Rs {net_profit}")
+
+    p.showPage()
+    p.save()
+    return response

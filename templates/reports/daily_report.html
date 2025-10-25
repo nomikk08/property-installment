@@ -4,9 +4,18 @@
   <h1 class="text-2xl font-bold mb-6">📅 Daily Income & Expenses Report</h1>
 
   <!-- Date Filter -->
-  <form method="get" class="mb-6 flex gap-3 items-center">
-    <input type="date" name="date" value="{{ selected_date }}" class="border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-400">
-    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Filter</button>
+  <form method="get" class="flex items-center gap-3 mb-6">
+    <input
+        type="date"
+        name="date"
+        value="{{ selected_date|date:'Y-m-d' }}"
+        class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-400"
+    >
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Filter</button>
+    <a href="{% url 'download_daily_report_pdf' %}?date={{ selected_date|date:'Y-m-d' }}"
+        class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900">
+        📄 Download PDF
+    </a>
   </form>
 
   <div class="grid md:grid-cols-2 gap-8">

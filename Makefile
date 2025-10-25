@@ -31,6 +31,17 @@ down-prod:
 logs-prod:
 	docker compose -f docker-compose.prod.yml logs -f
 
+# Database backup & restore START
+DB_RELOAD_COMMAND_BASE = pg_restore --username postgres --dbname db --schema public --exit-on-error --verbose --clean --if-exists --no-owner --format custom
+DB_DUMP_COMMAND_BASE = pg_dump --username postgres --dbname db --format custom
+
+dump-db:
+	docker compose exec db bash -c '${DB_DUMP_COMMAND_BASE} -f /dev-doc/db-dumps/live.dump'
+
+restore-db:
+	docker compose exec db bash -c '${DB_RELOAD_COMMAND_BASE} /dev-doc/db-dumps/live.dump;'
+# Database backup & restore END
+
 shell:
 	$(MANAGE) "python manage.py shell"
 

@@ -1,10 +1,13 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Sum, Q
+from django.utils import timezone
+
 from bookings.models import Booking, Payment
 from plots.models import Plot
 from expenses.models import Expense
 
+from datetime import datetime
 from reportlab.pdfgen import canvas
 
 
@@ -137,3 +140,48 @@ def download_earnings_pdf(request):
 
     p.save()
     return response
+
+def daily_report(request):
+    # Get selected date or default to today
+    date_str = request.GET.get("date")
+    if date_str:
+        selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    else:
+        selected_date = timezone.now().date()
+
+    # ✅ Expenses for the day
+    daily_expenses = Expense.objects.filter(date=selected_date)
+    total_expenses = daily_expenses.aggregate(total=Sum("amount"))["total"] or 0
+
+    # ✅ Sales (Bookings) for the day (down payments)
+    daily_bookings = Booking.objects.filter(start_date=selected_date)
+    total_booking_income = (
+        daily_bookings.aggregate(total=Sum("down_payment_amount"))["total"] or 0
+    )
+
+    # ✅ Payments marked as paid on selected date (Installments)
+    daily_installments = Payment.objects.filter(
+        is_paid=True, paid_date=selected_date
+    ).select_related("booking")
+    total_installment_income = (
+        daily_installments.aggregate(total=Sum("amount"))["total"] or 0
+    )
+
+    # ✅ Combine totals
+    total_income = total_booking_income + total_installment_income
+    net_profit = total_income - total_expenses
+
+    context = {
+        "selected_date": selected_date,
+        "daily_expenses": daily_expenses,
+        "daily_bookings": daily_bookings,
+        "daily_installments": daily_installments,
+        "total_expenses": total_expenses,
+        "total_income": total_income,
+        "total_booking_income": total_booking_income,
+        "total_installment_income": total_installment_income,
+        "net_profit": net_profit,
+    }
+
+    return render(request, "reports/daily_report.html", context)
+

@@ -1,18 +1,22 @@
 from django.db import models
 from django.utils import timezone
 
-class Expense(models.Model):
-    CATEGORY_CHOICES = [
-        ("development", "Development Cost"),
-        ("marketing", "Marketing & Ads"),
-        ("maintenance", "Maintenance"),
-        ("commission", "Agent Commission"),
-        ("utility", "Utility Bills"),
-        ("misc", "Miscellaneous"),
-    ]
 
+class ExpenseCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        verbose_name_plural = "Expense Categories"
+
+    def __str__(self):
+        return self.name
+
+
+class Expense(models.Model):
     title = models.CharField(max_length=200)
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default="misc")
+    category = models.ForeignKey(
+        ExpenseCategory, on_delete=models.CASCADE, related_name="expenses"
+    )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     description = models.TextField(blank=True, null=True)
     date = models.DateField(default=timezone.now)

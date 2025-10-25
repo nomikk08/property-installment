@@ -2,59 +2,73 @@
 {% block content %}
 <div class="max-w-6xl mx-auto py-8">
 
-  <h1 class="text-2xl font-bold mb-4">Expenses</h1>
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Expenses</h1>
+
+    <a href="{% url 'manage_expenses' %}"
+       class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 transition flex items-center gap-2">
+      ➕ Add Expenses
+    </a>
+  </div>
 
   <!-- 🔍 Filters -->
-  <form method="get" class="flex space-x-4 mb-4">
-    <select name="category" class="border px-2 py-1">
+  <form method="get" class="flex flex-wrap items-center gap-3 mb-6 bg-gray-50 p-4 rounded shadow-sm">
+    <select name="category" class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
       <option value="">All Categories</option>
-      {% for key, label in categories %}
-        <option value="{{ key }}" {% if selected_category == key %}selected{% endif %}>
-          {{ label }}
+      {% for cat in categories %}
+        <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>
+          {{ cat.name }}
         </option>
       {% endfor %}
     </select>
 
-    <input type="date" name="date_from" value="{{ date_from }}" class="border px-2 py-1">
-    <input type="date" name="date_to" value="{{ date_to }}" class="border px-2 py-1">
+    <input type="date" name="date_from" value="{{ date_from }}" class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+    <input type="date" name="date_to" value="{{ date_to }}" class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
 
-    <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded">Filter</button>
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+      Filter
+    </button>
 
     <!-- 📄 PDF Download — Keeps Filters -->
     <a href="{% url 'download_expenses_pdf' %}?category={{ selected_category }}&date_from={{ date_from }}&date_to={{ date_to }}"
-       class="bg-gray-800 text-white px-3 py-1 rounded">
+       class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 transition">
        📄 Download PDF
     </a>
   </form>
 
-  <!-- Total -->
-  <div class="bg-gray-100 p-4 rounded mb-6">
-    <p class="text-lg font-semibold">Total Expenses: <span class="text-red-600">Rs {{ total_expense }}</span></p>
+  <!-- 💰 Total -->
+  <div class="bg-gray-100 border-l-4 border-blue-500 p-4 rounded mb-6 shadow-sm">
+    <p class="text-lg font-semibold">
+      Total Expenses:
+      <span class="text-red-600 font-bold">Rs {{ total_expense }}</span>
+    </p>
   </div>
 
-  <!-- Table -->
-  <table class="min-w-full bg-white border rounded shadow">
-    <thead class="bg-gray-200">
-      <tr class="text-left">
-        <th class="py-2 px-4">Title</th>
-        <th class="py-2 px-4">Category</th>
-        <th class="py-2 px-4">Amount</th>
-        <th class="py-2 px-4">Date</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y">
-      {% for expense in expenses %}
-      <tr>
-        <td class="py-2 px-4">{{ expense.title }}</td>
-        <td class="py-2 px-4">{{ expense.get_category_display }}</td>
-        <td class="py-2 px-4">{{ expense.amount }}</td>
-        <td class="py-2 px-4">{{ expense.date }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="4" class="text-center py-4">No expenses found.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <!-- 📋 Expenses Table -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+      <thead class="bg-gray-200 text-gray-700 uppercase text-sm">
+        <tr class="text-left">
+          <th class="py-3 px-4">Title</th>
+          <th class="py-3 px-4">Category</th>
+          <th class="py-3 px-4">Amount</th>
+          <th class="py-3 px-4">Date</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for expense in expenses %}
+        <tr class="hover:bg-gray-50 transition">
+          <td class="py-3 px-4">{{ expense.title }}</td>
+          <td class="py-3 px-4">{{ expense.category.name }}</td>
+          <td class="py-3 px-4 text-red-600 font-semibold">Rs {{ expense.amount }}</td>
+          <td class="py-3 px-4">{{ expense.date }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center py-6 text-gray-500">No expenses found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
 </div>
 {% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto py-10 px-6">
+  <h1 class="text-2xl font-bold mb-6">Manage Expenses</h1>
+
+  <!-- 🧾 Add Category -->
+  <div class="bg-white shadow p-6 rounded mb-8 border">
+    <h2 class="text-lg font-semibold mb-4">Add New Category</h2>
+    <form method="post">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        {% for field in category_form %}
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            {{ field.label }}
+          </label>
+          {{ field }}
+          {% if field.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ field.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <button
+        type="submit"
+        name="add_category"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+      >
+        ➕ Add Category
+      </button>
+    </form>
+  </div>
+
+  <!-- 💰 Add Multiple Expenses -->
+  <div class="bg-white shadow p-6 rounded border">
+    <h2 class="text-lg font-semibold mb-4">Add Expenses</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ formset.management_form }}
+      <div class="space-y-6">
+        {% for form in formset %}
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 border p-4 rounded bg-gray-50">
+          {% for field in form.visible_fields %}
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              {{ field.label }}
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-red-600 text-sm mt-1">{{ field.errors|join:", " }}</p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="mt-6">
+        <button
+          type="submit"
+          name="save_expenses"
+          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+        >
+          💾 Save Expenses
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

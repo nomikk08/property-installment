@@ -25,6 +25,8 @@ build-prod:
 up-prod:
 	docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
+run-prod: up-prod migrate logs-prod
+
 down-prod:
 	docker compose -f docker-compose.prod.yml down
 

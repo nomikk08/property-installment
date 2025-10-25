@@ -29,7 +29,16 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "unsafe-secret-key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "0") == "1"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "abrargreencity.loca.lt",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost",
+    "https://abrargreencity.loca.lt",
+]
 
 
 # Application definition

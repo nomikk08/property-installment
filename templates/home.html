@@ -18,6 +18,60 @@
   </div>
 </section>
 
+<!-- 🔹 Quick Action Cards Section -->
+<section class="py-12 bg-gray-100">
+  <div class="container mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+
+      <!-- Daily Report -->
+      <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+        <div class="text-blue-600 text-4xl mb-4">📅</div>
+        <h3 class="text-xl font-bold mb-2">Daily Report</h3>
+        <p class="text-gray-600 mb-4">
+          View and download your daily income & expense summary.
+        </p>
+        <a
+          href="{% url 'daily_report' %}"
+          class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+        >
+          View Report
+        </a>
+      </div>
+
+      <!-- Create Booking -->
+      <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+        <div class="text-green-600 text-4xl mb-4">🏗️</div>
+        <h3 class="text-xl font-bold mb-2">Create Booking</h3>
+        <p class="text-gray-600 mb-4">
+          Add new buyers, plots, and bookings in one place.
+        </p>
+        <a
+          href="{% url 'create_booking_combined' %}"
+          class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+        >
+          Add Booking
+        </a>
+      </div>
+
+      <!-- Manage Expenses -->
+      <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+        <div class="text-red-600 text-4xl mb-4">💰</div>
+        <h3 class="text-xl font-bold mb-2">Manage Expenses</h3>
+        <p class="text-gray-600 mb-4">
+          Track your project’s expenses and generate reports easily.
+        </p>
+        <a
+          href="{% url 'manage_expenses' %}"
+          class="inline-block bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+        >
+          Add Expenses
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- Plotting Map -->
 <section class="py-16 bg-gray-50">
   <div class="container mx-auto px-6 text-center">

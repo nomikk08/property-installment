@@ -1,64 +1,79 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container mx-auto px-6">
-    <h1 class="text-2xl font-bold mb-6">Plots</h1>
+  <h1 class="text-2xl font-bold mb-6">Plots</h1>
 
-    <!-- Filter Form -->
-    <form method="get" class="mb-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <!-- Status -->
-        <select name="status" class="border rounded p-2">
-            <option value="">All Status</option>
-            <option value="available" {% if selected_status == "available" %}selected{% endif %}>Available</option>
-            <option value="reserved" {% if selected_status == "reserved" %}selected{% endif %}>Reserved</option>
-            <option value="sold" {% if selected_status == "sold" %}selected{% endif %}>Sold</option>
-        </select>
-
-        <!-- Plot Type -->
-        <select name="plot_type" class="border rounded p-2">
-            <option value="">All Types</option>
-            <option value="residential" {% if selected_plot_type == "residential" %}selected{% endif %}>Residential</option>
-            <option value="commercial" {% if selected_plot_type == "commercial" %}selected{% endif %}>Commercial</option>
-        </select>
-
-        <!-- Size Filters -->
-        <input type="number" name="min_size" value="{{ min_size }}" placeholder="Min Size (sqft)" class="border rounded p-2" />
-        <input type="number" name="max_size" value="{{ max_size }}" placeholder="Max Size (sqft)" class="border rounded p-2" />
-
-        <!-- Price Filters -->
-        <input type="number" name="min_price" value="{{ min_price }}" placeholder="Min Price" class="border rounded p-2" />
-        <input type="number" name="max_price" value="{{ max_price }}" placeholder="Max Price" class="border rounded p-2" />
-
-        <!-- Corner -->
-        <label class="flex items-center space-x-2">
-            <input type="checkbox" name="is_corner" value="true" {% if is_corner == "true" %}checked{% endif %}>
-            <span>Corner Plots</span>
-        </label>
-
-        <button type="submit" class="col-span-2 md:col-span-1 bg-blue-600 text-white p-2 rounded">Filter</button>
-    </form>
-
-    <!-- Plot Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for plot in plots %}
-            <div class="p-4 border rounded shadow hover:shadow-lg transition
-            {% if plot.status == 'available' %} bg-green-100 border-green-400 {% endif %}
-            {% if plot.status == 'sold' %} bg-red-100 border-red-400 {% endif %}
-            {% if plot.status == 'reserved' %} bg-yellow-100 border-yellow-400 {% endif %}
-            ">
-                <h2 class="text-lg font-bold">{{ plot.title }}</h2>
-                <p>📍 {{ plot.location }}</p>
-                <p>🏷️ Type: {{ plot.get_plot_type_display }}</p>
-                <p>📏 {{ plot.size_sqft }} sqft</p>
-                <p>💰 Price: Rs. {{ plot.price }}</p>
-                {% if plot.price_per_sqft %}<p>⚖️ Rs. {{ plot.price_per_sqft }} / sqft</p>{% endif %}
-                <p>Status: <strong>{{ plot.get_status_display }}</strong></p>
-                <p>Block: {{ plot.block_name }}</p>
-                {% if plot.is_corner %}<p class="text-red-600 font-semibold">🌟 Corner Plot</p>{% endif %}
-                {% if plot.facing_direction %}<p>Facing: {{ plot.facing_direction }}</p>{% endif %}
-            </div>
-        {% empty %}
-            <p>No plots found.</p>
-        {% endfor %}
+  <!-- ✅ Total Sqft Summary -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
+    <div class="bg-gray-100 p-4 rounded shadow">
+      <h3 class="text-lg font-semibold text-gray-700">🏗️ Total Sqft</h3>
+      <p class="text-2xl font-bold text-gray-900">{{ total_sqft|floatformat:0 }}</p>
     </div>
+    <div class="bg-green-100 p-4 rounded shadow">
+      <h3 class="text-lg font-semibold text-green-700">✅ Available Sqft</h3>
+      <p class="text-2xl font-bold text-green-900">{{ available_sqft|floatformat:0 }}</p>
+    </div>
+    <div class="bg-red-100 p-4 rounded shadow">
+      <h3 class="text-lg font-semibold text-red-700">🏠 Sold Sqft</h3>
+      <p class="text-2xl font-bold text-red-900">{{ sold_sqft|floatformat:0 }}</p>
+    </div>
+  </div>
+
+  <!-- Filter Form -->
+  <form method="get" class="mb-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <!-- Status -->
+    <select name="status" class="border rounded p-2">
+      <option value="">All Status</option>
+      <option value="available" {% if selected_status == "available" %}selected{% endif %}>Available</option>
+      <option value="reserved" {% if selected_status == "reserved" %}selected{% endif %}>Reserved</option>
+      <option value="sold" {% if selected_status == "sold" %}selected{% endif %}>Sold</option>
+    </select>
+
+    <!-- Plot Type -->
+    <select name="plot_type" class="border rounded p-2">
+      <option value="">All Types</option>
+      <option value="residential" {% if selected_plot_type == "residential" %}selected{% endif %}>Residential</option>
+      <option value="commercial" {% if selected_plot_type == "commercial" %}selected{% endif %}>Commercial</option>
+    </select>
+
+    <!-- Size Filters -->
+    <input type="number" name="min_size" value="{{ min_size }}" placeholder="Min Size (sqft)" class="border rounded p-2" />
+    <input type="number" name="max_size" value="{{ max_size }}" placeholder="Max Size (sqft)" class="border rounded p-2" />
+
+    <!-- Price Filters -->
+    <input type="number" name="min_price" value="{{ min_price }}" placeholder="Min Price" class="border rounded p-2" />
+    <input type="number" name="max_price" value="{{ max_price }}" placeholder="Max Price" class="border rounded p-2" />
+
+    <!-- Corner -->
+    <label class="flex items-center space-x-2">
+      <input type="checkbox" name="is_corner" value="true" {% if is_corner == "true" %}checked{% endif %}>
+      <span>Corner Plots</span>
+    </label>
+
+    <button type="submit" class="col-span-2 md:col-span-1 bg-blue-600 text-white p-2 rounded">Filter</button>
+  </form>
+
+  <!-- Plot Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for plot in plots %}
+    <div class="p-4 border rounded shadow hover:shadow-lg transition
+      {% if plot.status == 'available' %} bg-green-100 border-green-400 {% endif %}
+      {% if plot.status == 'sold' %} bg-red-100 border-red-400 {% endif %}
+      {% if plot.status == 'reserved' %} bg-yellow-100 border-yellow-400 {% endif %}">
+      <h2 class="text-lg font-bold">{{ plot.title }}</h2>
+      <p>📍 {{ plot.location }}</p>
+      <p>🏷️ Type: {{ plot.get_plot_type_display }}</p>
+      <p>📏 {{ plot.size_sqft }} sqft</p>
+      <p>💰 Price: Rs. {{ plot.price }}</p>
+      {% if plot.price_per_sqft %}<p>⚖️ Rs. {{ plot.price_per_sqft }} / sqft</p>{% endif %}
+      <p>Status: <strong>{{ plot.get_status_display }}</strong></p>
+      <p>Block: {{ plot.block_name }}</p>
+      {% if plot.is_corner %}<p class="text-red-600 font-semibold">🌟 Corner Plot</p>{% endif %}
+      {% if plot.facing_direction %}<p>Facing: {{ plot.facing_direction }}</p>{% endif %}
+    </div>
+    {% empty %}
+    <p>No plots found.</p>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}

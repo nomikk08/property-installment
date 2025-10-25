@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.db.models import Sum
 from .models import Plot
 from django.contrib.auth.decorators import login_required
 
@@ -35,6 +36,11 @@ def plot_list(request):
     if is_corner == "true":
         plots = plots.filter(is_corner=True)
 
+    # ✅ Sqft stats
+    total_sqft = Plot.objects.aggregate(total=Sum("size_sqft"))["total"] or 0
+    available_sqft = Plot.objects.filter(status="available").aggregate(total=Sum("size_sqft"))["total"] or 0
+    sold_sqft = Plot.objects.filter(status="sold").aggregate(total=Sum("size_sqft"))["total"] or 0
+
     context = {
         "plots": plots,
         "selected_status": status,
@@ -44,5 +50,8 @@ def plot_list(request):
         "min_price": min_price,
         "max_price": max_price,
         "is_corner": is_corner,
+        "total_sqft": total_sqft,
+        "available_sqft": available_sqft,
+        "sold_sqft": sold_sqft,
     }
     return render(request, "plots/plot_list.html", context)

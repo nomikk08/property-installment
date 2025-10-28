@@ -2,10 +2,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils import timezone
-from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
+from django.http import HttpResponse, JsonResponse
 from django.db import transaction
-from django.urls import reverse
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET
 
 from .forms import BuyerForm, PlotForm, BookingForm
 from .models import Booking, Payment
@@ -14,6 +13,8 @@ from accounts.models import Buyer
 from plots.models import Plot
 
 from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import inch
 
 
 def staff_required(view_func):
@@ -33,89 +34,171 @@ def bookings_page(request):
 def booking_detail(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
     payments = booking.payments.order_by("due_date")
+
+    # Identify next due payment (first unpaid one)
+    next_due = payments.filter(is_paid=False).order_by("due_date").first()
+
+    if request.method == "POST" and next_due:
+        # Allow editing next due payment only
+        if str(next_due.id) == request.POST.get("payment_id"):
+            next_due.due_date = request.POST.get("due_date") or next_due.due_date
+            next_due.amount = request.POST.get("amount") or next_due.amount
+            next_due.received_by = (
+                request.POST.get("received_by") or next_due.received_by
+            )
+
+            if "mark_paid" in request.POST:
+                next_due.is_paid = True
+                next_due.paid_date = timezone.now().date()
+                messages.success(request, "✅ Payment marked as paid successfully!")
+            else:
+                messages.success(request, "✅ Payment updated successfully!")
+
+            next_due.save()
+            return redirect("booking_detail", booking_id=booking.id)
+
     return render(
         request,
         "bookings/booking_detail.html",
-        {"booking": booking, "payments": payments},
+        {"booking": booking, "payments": payments, "next_due": next_due},
     )
 
 
 @login_required
 def mark_payment_paid(request, payment_id):
     payment = get_object_or_404(Payment, id=payment_id)
-    booking = payment.booking  # For redirect after marking paid
+    booking = payment.booking
 
-    # Update payment status
     if request.method == "POST":
-        received_by = request.POST.get("received_by")  # ✅ Get selected receiver
+        received_by = request.POST.get("received_by")
         payment.is_paid = True
         payment.paid_date = timezone.now().date()
-        payment.received_by = received_by  # ✅ Save receiver
+        payment.received_by = received_by
         payment.save()
 
-    messages.success(
-        request, f"Payment for {payment.due_date} marked as PAID successfully!"
-    )
+        messages.success(request, f"✅ Payment for {payment.due_date} marked as PAID.")
 
-    # ✅ Redirect back to booking detail page
     return redirect("booking_detail", booking_id=booking.id)
 
 
 def download_booking_pdf(request, pk):
     booking = Booking.objects.select_related("buyer", "plot").get(id=pk)
-    payments = booking.payments.all()
+    payments = booking.payments.all().order_by("due_date")
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f"attachment; filename=Booking_{booking.id}.pdf"
 
-    p = canvas.Canvas(response)
-    y = 800
+    p = canvas.Canvas(response, pagesize=A4)
+    width, height = A4
+    y = height - inch
 
-    # Title
-    p.setFont("Helvetica-Bold", 14)
-    p.drawString(200, y, f"Booking Summary - #{booking.id}")
+    # -------- HEADER --------
+    p.setFont("Helvetica-Bold", 16)
+    p.drawCentredString(width / 2, y, f"Abrar Green City - Booking Report")
+    y -= 20
+    p.setFont("Helvetica", 10)
+    p.drawCentredString(
+        width / 2, y, f"Generated on {timezone.now().strftime('%b %d, %Y, %I:%M %p')}"
+    )
     y -= 40
 
-    # Buyer Info
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(50, y, "Buyer Information:")
+    # -------- BOOKING SUMMARY --------
+    p.setFont("Helvetica-Bold", 13)
+    p.drawString(50, y, f"📄 Booking Summary (ID: {booking.id})")
+    y -= 20
+    p.setFont("Helvetica", 10)
+    p.drawString(60, y, f"Installment Months: {booking.installment_months}")
+    y -= 15
+    p.drawString(60, y, f"Monthly Installment: Rs {booking.monthly_installment}")
+    y -= 15
+    p.drawString(60, y, f"Down Payment: Rs {booking.down_payment_amount}")
+    y -= 15
+    p.drawString(60, y, f"Total Paid: Rs {booking.total_paid_amount}")
+    y -= 15
+    remaining = float(booking.plot.price or 0) - float(booking.total_paid_amount or 0)
+    p.drawString(60, y, f"Remaining Balance: Rs {remaining:.2f}")
+    y -= 25
+
+    # -------- BUYER INFO --------
+    p.setFont("Helvetica-Bold", 13)
+    p.drawString(50, y, "👤 Buyer Details")
     y -= 20
     p.setFont("Helvetica", 10)
     p.drawString(60, y, f"Name: {booking.buyer.name}")
     y -= 15
+    p.drawString(60, y, f"Father's Name: {booking.buyer.father_name}")
+    y -= 15
     p.drawString(60, y, f"CNIC: {booking.buyer.cnic}")
     y -= 15
     p.drawString(60, y, f"Contact: {booking.buyer.contact_no}")
-    y -= 30
+    y -= 15
+    p.drawString(60, y, f"Address: {booking.buyer.address}")
+    y -= 15
+    p.drawString(60, y, f"Inheritor: {booking.buyer.inheritor}")
+    y -= 15
+    p.drawString(60, y, f"Inheritor CNIC: {booking.buyer.inheritor_cnic}")
+    y -= 15
+    p.drawString(60, y, f"Relation: {booking.buyer.inheritor_relation}")
+    y -= 25
 
-    # Plot Info
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(50, y, "Plot Information:")
+    # -------- PLOT INFO --------
+    p.setFont("Helvetica-Bold", 13)
+    p.drawString(50, y, "🏡 Plot Details")
     y -= 20
     p.setFont("Helvetica", 10)
-    p.drawString(60, y, f"Plot: {booking.plot.title}")
+    p.drawString(60, y, f"Title: {booking.plot.title}")
     y -= 15
-    p.drawString(60, y, f"Price: Rs {booking.plot.price}")
+    p.drawString(60, y, f"Location: {booking.plot.location}")
     y -= 15
-    p.drawString(60, y, f"Installments: {booking.installment_months} months")
-    y -= 30
+    p.drawString(60, y, f"Type: {booking.plot.plot_type.title()}")
+    y -= 15
+    p.drawString(60, y, f"Block: {booking.plot.block_name}")
+    y -= 15
+    p.drawString(60, y, f"Size: {booking.plot.size_sqft} sqft")
+    y -= 15
+    p.drawString(60, y, f"Facing Direction: {booking.plot.facing_direction}")
+    y -= 15
+    p.drawString(60, y, f"Corner Plot: {'Yes' if booking.plot.is_corner else 'No'}")
+    y -= 15
+    p.drawString(60, y, f"Price per Sqft: Rs {booking.plot.price_per_sqft}")
+    y -= 15
+    p.drawString(60, y, f"Total Price: Rs {booking.plot.price}")
+    y -= 25
 
-    # Payment Summary
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(50, y, "Payment Schedule:")
+    # -------- PAYMENT SCHEDULE --------
+    p.setFont("Helvetica-Bold", 13)
+    p.drawString(50, y, "💳 Payment Schedule")
     y -= 20
-    p.setFont("Helvetica", 10)
 
+    # Table Header
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(50, y, "Due Date")
+    p.drawString(120, y, "Amount")
+    p.drawString(190, y, "Status")
+    p.drawString(250, y, "Paid Date")
+    p.drawString(320, y, "Received By")
+    y -= 15
+    p.line(50, y, 550, y)
+    y -= 10
+
+    # Table Rows
+    p.setFont("Helvetica", 9)
     for pay in payments:
-        status = "PAID" if pay.is_paid else "Pending"
-        paid_date = pay.paid_date.strftime("%Y-%m-%d") if pay.paid_date else "-"
-        p.drawString(
-            60, y, f"{pay.due_date} — Rs {pay.amount} — {status} (Paid: {paid_date})"
-        )
-        y -= 15
-        if y < 50:
+        if y < 60:
             p.showPage()
-            y = 800
+            y = height - 60
+            p.setFont("Helvetica", 9)
+
+        status = "✅ PAID" if pay.is_paid else "⏳ Pending"
+        paid_date = pay.paid_date.strftime("%Y-%m-%d") if pay.paid_date else "-"
+        receiver = pay.get_received_by_display() if pay.received_by else "-"
+
+        p.drawString(50, y, str(pay.due_date))
+        p.drawString(120, y, f"Rs {pay.amount}")
+        p.drawString(190, y, status)
+        p.drawString(250, y, paid_date)
+        p.drawString(320, y, receiver[:15])
+        y -= 15
 
     p.showPage()
     p.save()

@@ -1,6 +1,8 @@
-{% extends "base.html" %} {% load math_filters %} {% block content %}
+{% extends "base.html" %}
+{% load math_filters %}
+{% block content %}
 
-<div class="max-w-6xl mx-auto py-10 px-6">
+<div class="max-w-7xl mx-auto py-10 px-6">
   <a
     href="{% url 'bookings_page' %}"
     class="text-blue-600 hover:underline mb-4 inline-block"
@@ -11,18 +13,17 @@
   <div
     class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded"
   >
-    <p class="text-lg">
+    <p class="text-lg font-medium">
       💰 <strong>Remaining Balance:</strong>
-      Rs {{ booking.plot_price|subtract:booking.total_paid_amount }}
+      Rs {{ booking.plot.price|subtract:booking.total_paid_amount }}
     </p>
   </div>
 
-  <h1 class="text-2xl font-bold mb-6">
-    Booking Details — {{ booking.plot.title }}
-  </h1>
-
+  <!-- HEADER -->
   <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold">Booking Details</h1>
+    <h1 class="text-3xl font-bold">
+      Booking #{{ booking.id }} — {{ booking.plot.title }}
+    </h1>
     <a
       href="{% url 'download_booking_pdf' booking.id %}"
       class="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition"
@@ -31,133 +32,135 @@
     </a>
   </div>
 
-  <!-- Summary Sections (same as before but kept clean) -->
-  <div class="grid md:grid-cols-3 gap-6 mb-8">
-    <!-- Booking Summary -->
+  <!-- 🧾 MAIN GRID -->
+  <div class="grid md:grid-cols-3 gap-6 mb-10">
+    <!-- BOOKING DETAILS -->
     <div class="bg-white shadow-md p-6 rounded-lg border">
-      <h2 class="text-lg font-semibold mb-2">Booking Summary</h2>
-      <p>
-        <strong>Total Installments:</strong> {{ booking.installment_months }}
-      </p>
-      <p><strong>Monthly:</strong> Rs {{ booking.monthly_installment }}</p>
+      <h2 class="text-lg font-semibold mb-3 text-gray-800 border-b pb-2">
+        Booking Details
+      </h2>
+      <p><strong>Booking Date:</strong> {{ booking.booking_date|date:"M d, Y" }}</p>
+      <p><strong>Installment Months:</strong> {{ booking.installment_months }}</p>
+      <p><strong>Monthly Installment:</strong> Rs {{ booking.monthly_installment }}</p>
       <p><strong>Down Payment:</strong> Rs {{ booking.down_payment_amount }}</p>
       <p><strong>Total Paid:</strong> Rs {{ booking.total_paid_amount }}</p>
-      <p>
-        <strong>Remaining Months:</strong> {{ booking.remaining_installments }}
-      </p>
-      <p>
+      <p><strong>Remaining Months:</strong> {{ booking.remaining_installments }}</p>
+      <p><strong>Notes:</strong> {{ booking.notes|default:"—" }}</p>
+      <p class="mt-2">
         <strong>Status:</strong>
         {% if booking.is_completed %}
-        <span class="px-2 py-1 text-sm bg-green-100 text-green-700 rounded"
-          >✅ Completed</span
-        >
+        <span class="px-2 py-1 text-sm bg-green-100 text-green-700 rounded">✅ Completed</span>
         {% else %}
-        <span class="px-2 py-1 text-sm bg-red-100 text-red-700 rounded"
-          >⏳ In Progress</span
-        >
+        <span class="px-2 py-1 text-sm bg-yellow-100 text-yellow-700 rounded">⏳ In Progress</span>
         {% endif %}
       </p>
     </div>
 
-    <!-- Plot Details -->
+    <!-- PLOT DETAILS -->
     <div class="bg-white shadow-md p-6 rounded-lg border">
-      <h2 class="text-lg font-semibold mb-2">Plot Details</h2>
-      <p><strong>Plot Number:</strong> {{ booking.plot.title }}</p>
+      <h2 class="text-lg font-semibold mb-3 text-gray-800 border-b pb-2">
+        Plot Details
+      </h2>
+      <p><strong>Plot No:</strong> {{ booking.plot.title }}</p>
       <p><strong>Location:</strong> {{ booking.plot.location }}</p>
       <p><strong>Type:</strong> {{ booking.plot.plot_type|title }}</p>
-      <p><strong>Size:</strong> {{ booking.plot.size_sqft }} sqft</p>
-      <p><strong>Price:</strong> Rs {{ booking.plot.price }}</p>
+      <p><strong>Block:</strong> {{ booking.plot.block_name|default:"—" }}</p>
+      <p><strong>Facing Direction:</strong> {{ booking.plot.facing_direction|default:"—" }}</p>
+      <p><strong>Corner Plot:</strong> {{ booking.plot.is_corner|yesno:"Yes,No" }}</p>
+      <p><strong>Size (L × W):</strong> {{ booking.plot.length_ft }}ft × {{ booking.plot.width_ft }}ft</p>
+      <p><strong>Total Area:</strong> {{ booking.plot.size_sqft }} sqft</p>
+      <p><strong>Price per Sqft:</strong> Rs {{ booking.plot.price_per_sqft }}</p>
+      <p><strong>Total Price:</strong> Rs {{ booking.plot.price }}</p>
+      <p><strong>Status:</strong> {{ booking.plot.get_status_display }}</p>
     </div>
 
-    <!-- Buyer Details -->
+    <!-- BUYER DETAILS -->
     <div class="bg-white shadow-md p-6 rounded-lg border">
-      <h2 class="text-lg font-semibold mb-2">Buyer Details</h2>
+      <h2 class="text-lg font-semibold mb-3 text-gray-800 border-b pb-2">
+        Buyer Details
+      </h2>
       <p><strong>Name:</strong> {{ booking.buyer.name }}</p>
+      <p><strong>Father's Name:</strong> {{ booking.buyer.father_name|default:"—" }}</p>
       <p><strong>CNIC:</strong> {{ booking.buyer.cnic }}</p>
       <p><strong>Contact:</strong> {{ booking.buyer.contact_no }}</p>
+      <p><strong>Address:</strong> {{ booking.buyer.address|default:"—" }}</p>
+      <p><strong>Inheritor:</strong> {{ booking.buyer.inheritor|default:"—" }}</p>
+      <p><strong>Inheritor CNIC:</strong> {{ booking.buyer.inheritor_cnic|default:"—" }}</p>
+      <p><strong>Relation:</strong> {{ booking.buyer.inheritor_relation|default:"—" }}</p>
     </div>
   </div>
 
-  <!-- Payment Schedule -->
-  <h2 class="text-xl font-semibold mb-4">Payment Schedule</h2>
+  <!-- 💳 PAYMENT SCHEDULE -->
+   <h2 class="text-xl font-semibold mb-4">Payment Schedule</h2>
 
   <div class="overflow-x-auto">
-    <table class="min-w-full bg-white border rounded-lg shadow">
+    <table class="min-w-full bg-white border rounded-lg shadow text-sm">
       <thead>
-        <tr class="bg-gray-100 text-sm uppercase text-left">
+        <tr class="bg-gray-100 uppercase text-left">
           <th class="py-3 px-4">#</th>
           <th class="py-3 px-4">Due Date</th>
           <th class="py-3 px-4">Amount</th>
-          <th class="py-3 px-4">Status</th>
           <th class="py-3 px-4">Paid Date</th>
-          <th class="py-3 px-4">Recieved By</th>
-          <th class="py-3 px-4">Action</th>
+          <th class="py-3 px-4">Received By</th>
+          <th class="py-3 px-4">Status</th>
+          <th class="py-3 px-4 text-center">Action</th>
         </tr>
       </thead>
       <tbody class="divide-y">
         {% for payment in payments %}
-        <tr class="{% if payment.is_next_due %}bg-yellow-50{% endif %}">
+        <tr class="{% if payment == next_due %}bg-yellow-50{% elif payment.is_paid %}bg-green-50{% endif %}">
           <td class="py-3 px-4">{{ forloop.counter }}</td>
-          <td class="py-3 px-4">{{ payment.due_date }}</td>
+
+          {% if payment == next_due %}
+          <!-- Editable Fields -->
+          <form method="post" action="">
+            {% csrf_token %}
+            <input type="hidden" name="payment_id" value="{{ payment.id }}">
+
+            <td class="py-3 px-4">
+              <input type="date" name="due_date" value="{{ payment.due_date|date:'Y-m-d' }}" class="border rounded p-1 w-full">
+            </td>
+
+            <td class="py-3 px-4">
+              <input type="number" step="0.01" name="amount" value="{{ payment.amount }}" class="border rounded p-1 w-full">
+            </td>
+
+            <td class="py-3 px-4 text-gray-500">—</td>
+
+            <td class="py-3 px-4">
+              <select name="received_by" class="border rounded p-1 w-full">
+                <option value="">— Select —</option>
+                <option value="tasawur" {% if payment.received_by == 'tasawur' %}selected{% endif %}>Tasawur</option>
+                <option value="abdul_ghafoor" {% if payment.received_by == 'abdul_ghafoor' %}selected{% endif %}>Abdul Ghafoor</option>
+              </select>
+            </td>
+
+            <td class="py-3 px-4 text-yellow-700 font-medium">Next Due ⚠</td>
+
+            <td class="py-3 px-4 text-center">
+              <button type="submit" name="save" class="bg-blue-500 text-white text-xs px-3 py-1 rounded hover:bg-blue-600">💾 Save</button>
+              <button type="submit" name="mark_paid" class="bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-700 ml-1">✅ Mark Paid</button>
+            </td>
+          </form>
+          {% else %}
+          <!-- Readonly Fields -->
+          <td class="py-3 px-4">{{ payment.due_date|date:"M d, Y" }}</td>
           <td class="py-3 px-4">Rs {{ payment.amount }}</td>
+          <td class="py-3 px-4">{{ payment.paid_date|default:"—" }}</td>
+          <td class="py-3 px-4">{{ payment.get_received_by_display|default:"—" }}</td>
+          <td class="py-3 px-4">{{ payment.notes|default:"—" }}</td>
           <td class="py-3 px-4">
             {% if payment.is_paid %}
-            <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded"
-              >Paid ✅</span
-            >
-            {% elif payment.is_next_due %}
-            <span
-              class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded"
-              >Next Due ⚠</span
-            >
+              <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">Paid ✅</span>
             {% else %}
-            <span class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded"
-              >Pending ⏳</span
-            >
+              <span class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded">Pending ⏳</span>
             {% endif %}
           </td>
-          <td class="py-3 px-4">{{ payment.paid_date|default:"—" }}</td>
-          <!-- ✅ RECEIVED BY COLUMN -->
-          <td class="py-3 px-4">
-            {% if not payment.is_paid %}
-            <form method="post" action="{% url 'mark_payment_paid' payment.id %}">
-              {% csrf_token %}
-              <select name="received_by" class="border rounded px-2 py-1 text-sm">
-                <option value="tasawur">Tasawur</option>
-                <option value="abdul_ghafoor">Abdul Ghafoor</option>
-              </select>
-            {% else %}
-              <span class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded">
-                {{ payment.get_received_by_display }}
-              </span>
-            {% endif %}
-          </td>
-          <!-- ✅Action COLUMN -->
-          <td class="py-3 px-4">
-            {% if not payment.is_paid %}
-            <form
-              action="{% url 'mark_payment_paid' payment.id %}"
-              method="post"
-              onsubmit="return confirm('Are you sure you want to mark this payment as PAID?');"
-            >
-              {% csrf_token %}
-              <button
-                class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
-                {%
-                if
-                payment.is_paid
-                %}disabled{%
-                endif
-                %}
-              >
-                Mark as Paid
-              </button>
-            </form>
-            {% else %}
-            <span class="text-gray-500 text-sm">—</span>
-            {% endif %}
-          </td>
+          <td class="py-3 px-4 text-center text-gray-400">—</td>
+          {% endif %}
         </tr>
+        {% empty %}
+        <tr><td colspan="8" class="py-4 text-center text-gray-500">No payments found.</td></tr>
         {% endfor %}
       </tbody>
     </table>

@@ -1,6 +1,4 @@
-{% extends "base.html" %}
-{% load static %}
-{% block content %}
+{% extends "base.html" %} {% load static %} {% block content %}
 <div class="max-w-6xl mx-auto py-10 px-6">
   <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">
     🏗️ Create New Booking
@@ -9,56 +7,73 @@
   <form method="post" id="combined-form" class="space-y-10">
     {% csrf_token %}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
       <!-- Buyer Section -->
       <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-        <h2 class="text-lg font-semibold mb-3 text-blue-700 border-b pb-2">Buyer Details</h2>
+        <h2 class="text-lg font-semibold mb-3 text-blue-700 border-b pb-2">
+          Buyer Details
+        </h2>
 
-        <label class="block text-sm text-gray-700 mb-2 font-medium">Select Buyer</label>
-        <select id="buyer-select" name="buyer_select" class="w-full border border-gray-300 rounded p-2 mb-3 focus:ring-2 focus:ring-blue-400">
+        <label class="block text-sm text-gray-700 mb-2 font-medium"
+          >Select Buyer</label
+        >
+        <select
+          id="buyer-select"
+          name="buyer_select"
+          class="w-full border border-gray-300 rounded p-2 mb-3 focus:ring-2 focus:ring-blue-400"
+        >
           <option value="new">➕ New Buyer (fill below)</option>
           {% for b in buyers %}
-            <option value="{{ b.id }}">{{ b.name }} — {{ b.cnic }}</option>
+          <option value="{{ b.id }}">{{ b.name }} — {{ b.cnic }}</option>
           {% endfor %}
         </select>
 
         <!-- Buyer form -->
-        <div id="buyer-form" class="space-y-2">
-          {{ buyer_form.as_p }}
-        </div>
+        <div id="buyer-form" class="space-y-2">{{ buyer_form.as_p }}</div>
       </div>
 
       <!-- Plot Section -->
       <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-        <h2 class="text-lg font-semibold mb-3 text-blue-700 border-b pb-2">Plot Details</h2>
+        <h2 class="text-lg font-semibold mb-3 text-blue-700 border-b pb-2">
+          Plot Details
+        </h2>
 
-        <label class="block text-sm text-gray-700 mb-2 font-medium">Select Plot</label>
-        <select id="plot-select" name="plot_select" class="w-full border border-gray-300 rounded p-2 mb-3 focus:ring-2 focus:ring-blue-400">
+        <label class="block text-sm text-gray-700 mb-2 font-medium"
+          >Select Plot</label
+        >
+        <select
+          id="plot-select"
+          name="plot_select"
+          class="w-full border border-gray-300 rounded p-2 mb-3 focus:ring-2 focus:ring-blue-400"
+        >
           <option value="new">➕ New Plot (fill below)</option>
           {% for p in plots %}
-            <option value="{{ p.id }}">{{ p.title }} — {{ p.location }}</option>
+          <option value="{{ p.id }}">{{ p.title }} — {{ p.location }}</option>
           {% endfor %}
         </select>
 
-        <div id="plot-form" class="space-y-2">
-          {{ plot_form.as_p }}
-        </div>
+        <div id="plot-form" class="space-y-2">{{ plot_form.as_p }}</div>
       </div>
 
       <!-- Booking Section -->
       <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-        <h2 class="text-lg font-semibold mb-3 text-blue-700 border-b pb-2">Booking Info</h2>
+        <h2 class="text-lg font-semibold mb-3 text-blue-700 border-b pb-2">
+          Booking Info
+        </h2>
 
-        <div class="space-y-2">
-          {{ booking_form.as_p }}
-        </div>
+        <div class="space-y-2">{{ booking_form.as_p }}</div>
 
         <div class="mt-6 text-center">
-          <button type="submit"
-            class="px-5 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition">
+          <button
+            type="submit"
+            class="px-5 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition"
+          >
             💾 Create Booking
           </button>
-          <a href="{% url 'bookings_page' %}" class="ml-3 text-gray-500 hover:underline">Cancel</a>
+          <a
+            href="{% url 'bookings_page' %}"
+            class="ml-3 text-gray-500 hover:underline"
+            >Cancel</a
+          >
         </div>
       </div>
     </div>
@@ -67,22 +82,22 @@
 
 <script>
   // ---------- Utility selectors ----------
-  const buyerSelect = document.getElementById('buyer-select');
-  const buyerForm = document.getElementById('buyer-form');
-  const plotSelect = document.getElementById('plot-select');
-  const plotForm = document.getElementById('plot-form');
+  const buyerSelect = document.getElementById("buyer-select");
+  const buyerForm = document.getElementById("buyer-form");
+  const plotSelect = document.getElementById("plot-select");
+  const plotForm = document.getElementById("plot-form");
 
   // ---------- Autofill for existing buyer ----------
-  buyerSelect.addEventListener('change', function() {
+  buyerSelect.addEventListener("change", function () {
     const val = this.value;
-    if (val === 'new') {
-      const inputs = buyerForm.querySelectorAll('input, textarea, select');
-      inputs.forEach(i => i.value = '');
+    if (val === "new") {
+      const inputs = buyerForm.querySelectorAll("input, textarea, select");
+      inputs.forEach((i) => (i.value = ""));
       return;
     }
     fetch(`/bookings/api/buyer/${val}/`)
-      .then(r => r.json())
-      .then(data => {
+      .then((r) => r.json())
+      .then((data) => {
         for (const [k, v] of Object.entries(data)) {
           const field = document.querySelector(`[name="buyer-${k}"]`);
           if (field) field.value = v;
@@ -91,27 +106,76 @@
   });
 
   // ---------- Autofill for existing plot ----------
-  plotSelect.addEventListener('change', function() {
+  plotSelect.addEventListener("change", function () {
     const val = this.value;
-    if (val === 'new') {
-      const inputs = plotForm.querySelectorAll('input, textarea, select');
-      inputs.forEach(i => {
-        if (i.type === 'checkbox') i.checked = false;
-        else i.value = '';
+    if (val === "new") {
+      const inputs = plotForm.querySelectorAll("input, textarea, select");
+      inputs.forEach((i) => {
+        if (i.type === "checkbox") i.checked = false;
+        else i.value = "";
       });
       return;
     }
+
     fetch(`/bookings/api/plot/${val}/`)
-      .then(r => r.json())
-      .then(data => {
+      .then((r) => r.json())
+      .then((data) => {
         for (const [k, v] of Object.entries(data)) {
           const field = document.querySelector(`[name="plot-${k}"]`);
           if (field) {
-            if (field.type === 'checkbox') field.checked = !!v;
+            if (field.type === "checkbox") field.checked = !!v;
             else field.value = v;
           }
         }
+
+        // 🧮 Auto-calculate monthly installment (with down payment)
+        const price = parseFloat(data.price) || 0;
+        const monthsField = document.querySelector(
+          '[name="booking-installment_months"]'
+        );
+        const downPaymentField = document.querySelector(
+          '[name="booking-down_payment_amount"]'
+        );
+        const monthlyField = document.querySelector(
+          '[name="booking-monthly_installment"]'
+        );
+
+        const months = parseFloat(monthsField?.value) || 0;
+        const down = parseFloat(downPaymentField?.value) || 0;
+
+        if (price > 0 && months > 0 && monthlyField) {
+          const remaining = Math.max(price - down, 0);
+          monthlyField.value = (remaining / months).toFixed(2);
+        }
       });
+  });
+
+  // ---------- Recalculate monthly installment if user changes months or down payment ----------
+  document.addEventListener("input", (e) => {
+    if (
+      e.target.name === "booking-installment_months" ||
+      e.target.name === "booking-down_payment_amount"
+    ) {
+      const priceField = document.querySelector('[name="plot-price"]');
+      const downPaymentField = document.querySelector(
+        '[name="booking-down_payment_amount"]'
+      );
+      const monthlyField = document.querySelector(
+        '[name="booking-monthly_installment"]'
+      );
+
+      const price = parseFloat(priceField?.value) || 0;
+      const months =
+        parseFloat(
+          document.querySelector('[name="booking-installment_months"]')?.value
+        ) || 0;
+      const down = parseFloat(downPaymentField?.value) || 0;
+
+      if (price > 0 && months > 0 && monthlyField) {
+        const remaining = Math.max(price - down, 0);
+        monthlyField.value = (remaining / months).toFixed(2);
+      }
+    }
   });
 
   // ---------- Auto-calculate size_sqft ----------
@@ -126,11 +190,11 @@
     calcPrice(); // also trigger price update when size changes
   }
 
-  document.addEventListener('input', (e) => {
-    if (['plot-length_ft', 'plot-width_ft'].includes(e.target.name)) {
+  document.addEventListener("input", (e) => {
+    if (["plot-length_ft", "plot-width_ft"].includes(e.target.name)) {
       calcSizeSqft();
     }
-    if (['plot-price_per_sqft', 'plot-size_sqft'].includes(e.target.name)) {
+    if (["plot-price_per_sqft", "plot-size_sqft"].includes(e.target.name)) {
       calcPrice();
     }
   });
@@ -147,37 +211,41 @@
   }
 
   // Initialize: trigger autofill if existing selected
-  if (buyerSelect.value !== 'new') buyerSelect.dispatchEvent(new Event('change'));
-  if (plotSelect.value !== 'new') plotSelect.dispatchEvent(new Event('change'));
+  if (buyerSelect.value !== "new")
+    buyerSelect.dispatchEvent(new Event("change"));
+  if (plotSelect.value !== "new") plotSelect.dispatchEvent(new Event("change"));
 </script>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const fields = document.querySelectorAll(
-      'input, select, textarea'
-    );
+    const fields = document.querySelectorAll("input, select, textarea");
 
     fields.forEach((field) => {
       field.classList.add(
-        'w-full',
-        'border',
-        'border-gray-400',
-        'rounded-md',
-        'p-2',
-        'text-gray-800',
-        'focus:outline-none',
-        'focus:ring-2',
-        'focus:ring-blue-500',
-        'focus:border-blue-500'
+        "w-full",
+        "border",
+        "border-gray-400",
+        "rounded-md",
+        "p-2",
+        "text-gray-800",
+        "focus:outline-none",
+        "focus:ring-2",
+        "focus:ring-blue-500",
+        "focus:border-blue-500"
       );
     });
 
     const labels = document.querySelectorAll("label");
     labels.forEach((label) => {
-      label.classList.add('text-sm', 'font-medium', 'text-gray-700', 'mb-1', 'block');
+      label.classList.add(
+        "text-sm",
+        "font-medium",
+        "text-gray-700",
+        "mb-1",
+        "block"
+      );
     });
   });
 </script>
-
 
 {% endblock %}

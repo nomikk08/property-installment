@@ -1,42 +1,140 @@
-{% extends "base.html" %} {% block content %}
-<div class="max-w-6xl mx-auto py-10 px-6">
-  <h1 class="text-2xl font-bold mb-6">💰 Earnings Dashboard</h1>
+{% extends "base.html" %}
+{% block content %}
 
-  <!-- Summary Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-    <div class="bg-blue-50 p-4 border-l-4 border-blue-500 rounded">
+<div class="max-w-6xl mx-auto py-10 px-6">
+  <h1 class="text-2xl font-bold mb-8">💼 Earnings & Accounts Dashboard</h1>
+
+  <form method="get" class="flex flex-wrap items-center gap-3 mb-6">
+    <input
+      type="date"
+      name="start_date"
+      value="{{ start_date|date:'Y-m-d' }}"
+      class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-400"
+    />
+    <input
+      type="date"
+      name="end_date"
+      value="{{ end_date|date:'Y-m-d' }}"
+      class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-400"
+    />
+    <button
+      type="submit"
+      class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+    >
+      Filter
+    </button>
+    <a
+      href="{% url 'earnings_page' %}"
+      class="text-gray-600 underline text-sm hover:text-gray-800"
+    >
+      Clear
+    </a>
+  </form>
+
+  <!-- 💰 Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Total Sales Value -->
+    <div class="bg-blue-50 p-5 border-l-4 border-blue-500 rounded shadow-sm">
       <p class="text-sm text-gray-600">Total Plot Sales Value</p>
-      <p class="text-xl font-bold">Rs {{ total_plot_value }}</p>
+      <p class="text-xl font-bold text-gray-800">Rs {{ total_plot_value }}</p>
     </div>
-    <div class="bg-green-50 p-4 border-l-4 border-green-500 rounded">
-      <p class="text-sm text-gray-600">Total Received</p>
-      <p class="text-xl font-bold">Rs {{ total_received }}</p>
+
+    <!-- Total Income (Credit) -->
+    <div class="bg-green-50 p-5 border-l-4 border-green-600 rounded shadow-sm">
+      <p class="text-sm text-gray-600">Total Credit (Income)</p>
+      <p class="text-xl font-bold text-green-700">Rs {{ total_received }}</p>
     </div>
-    <div class="bg-yellow-50 p-4 border-l-4 border-yellow-500 rounded">
-      <p class="text-sm text-gray-600">Pending Amount</p>
-      <p class="text-xl font-bold">Rs {{ total_pending }}</p>
+
+    <!-- Pending Payments -->
+    <div class="bg-yellow-50 p-5 border-l-4 border-yellow-500 rounded shadow-sm">
+      <p class="text-sm text-gray-600">Pending Installments</p>
+      <p class="text-xl font-bold text-yellow-700">Rs {{ total_pending }}</p>
     </div>
   </div>
 
+  <!-- 📊 Debits & Net Profit -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-    <div class="bg-red-50 p-4 border-l-4 border-red-500 rounded">
-      <p class="text-sm text-gray-600">Total Expenses</p>
-      <p class="text-xl font-bold">Rs {{ total_expenses }}</p>
+    <!-- Total Expenses -->
+    <div class="bg-red-50 p-5 border-l-4 border-red-500 rounded shadow-sm">
+      <p class="text-sm text-gray-600">Total Debit (Expenses)</p>
+      <p class="text-xl font-bold text-red-700">Rs {{ total_expenses }}</p>
     </div>
-    <div class="bg-gray-100 p-4 border-l-4 border-gray-600 rounded">
-      <p class="text-sm text-gray-600">Net Profit</p>
+
+    <!-- Net Profit -->
+    <div class="bg-gray-50 p-5 border-l-4 border-gray-700 rounded shadow-sm">
+      <p class="text-sm text-gray-600">Net Balance</p>
       <p
-        class="text-xl font-bold {% if net_profit > 0 %}text-green-600{% else %}text-red-600{% endif %}"
+        class="text-xl font-bold {% if net_profit > 0 %}text-green-700{% else %}text-red-700{% endif %}"
       >
         Rs {{ net_profit }}
       </p>
     </div>
   </div>
 
-  <a
-    href="{% url 'download_earnings_pdf' %}"
-    class="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900"
-    >📄 Download Full Earnings Report</a
-  >
+  <!-- 📄 Download Report Button -->
+  <div class="mb-10">
+    <a
+      href="{% url 'download_earnings_pdf' %}"
+      class="inline-flex items-center gap-2 px-5 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition"
+    >
+      📄 Download Full Earnings Report
+    </a>
+  </div>
+
+  <!-- 🧾 Recent Transactions Ledger -->
+  <div class="bg-white rounded-lg shadow border border-gray-200">
+    <div class="flex justify-between items-center border-b px-6 py-4">
+      <h2 class="text-lg font-semibold text-gray-800">Recent Transactions</h2>
+      <a
+        href="{% url 'daily_report' %}"
+        class="text-sm text-blue-600 hover:underline"
+        >View Full Ledger →</a
+      >
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm text-left border-collapse">
+        <thead class="bg-gray-100 uppercase text-gray-600">
+          <tr>
+            <th class="py-3 px-4 border-b">Date</th>
+            <th class="py-3 px-4 border-b">Description</th>
+            <th class="py-3 px-4 border-b text-green-700">Credit (+)</th>
+            <th class="py-3 px-4 border-b text-red-700">Debit (–)</th>
+            <th class="py-3 px-4 border-b">Linked To</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y">
+          {% for t in transactions %}
+          <tr>
+            <td class="py-2 px-4">{{ t.date }}</td>
+            <td class="py-2 px-4">{{ t.description|default:"—" }}</td>
+            <td class="py-2 px-4 text-green-700 font-medium">
+              {% if t.type == 'credit' %} Rs {{ t.amount }} {% else %} — {% endif %}
+            </td>
+            <td class="py-2 px-4 text-red-700 font-medium">
+              {% if t.type == 'debit' %} Rs {{ t.amount }} {% else %} — {% endif %}
+            </td>
+            <td class="py-2 px-4">
+              {% if t.booking %}
+                Booking #{{ t.booking.id }}
+              {% elif t.expense %}
+                {{ t.expense.category.name }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center py-4 text-gray-500">
+              No transactions recorded yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
+
 {% endblock %}

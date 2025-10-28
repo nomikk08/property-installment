@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "bookings",
     "plots",
     "expenses",
+    "reports",
     "tailwind",
     "theme",
 ]

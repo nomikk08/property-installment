@@ -15,6 +15,7 @@ from plots.models import Plot
 
 from reportlab.pdfgen import canvas
 
+
 def staff_required(view_func):
     return user_passes_test(lambda u: u.is_active and u.is_staff)(view_func)
 
@@ -120,70 +121,75 @@ def download_booking_pdf(request, pk):
     p.save()
     return response
 
+
+@staff_required
 @staff_required
 def create_booking_combined(request):
     """
     Unified page to select/add Buyer and Plot and create Booking.
-    Only staff users allowed (change decorator if you want different permission).
+    If existing Buyer or Plot selected, update their data if changed.
     """
+    buyers = Buyer.objects.order_by("name")[:200]
+    plots = Plot.objects.filter(status="available").order_by("title")[:500]
+
     buyer_form = BuyerForm(prefix="buyer")
     plot_form = PlotForm(prefix="plot")
     booking_form = BookingForm(prefix="booking")
 
-    buyers = Buyer.objects.order_by("name")[:200] 
-    plots = Plot.objects.filter(status="available").order_by("title")[:500]
-
     if request.method == "POST":
-        # Use transaction to ensure consistency
         with transaction.atomic():
-            # Decide buyer: existing or new
+            # ---------------- Buyer ----------------
             buyer_choice = request.POST.get("buyer_select")
             if buyer_choice and buyer_choice != "new":
                 buyer = get_object_or_404(Buyer, id=int(buyer_choice))
+                buyer_form = BuyerForm(request.POST, instance=buyer, prefix="buyer")
+                if buyer_form.is_valid():
+                    buyer = buyer_form.save()  # ✅ updates existing buyer
+                else:
+                    messages.error(request, "Please fix buyer form errors.")
             else:
                 buyer_form = BuyerForm(request.POST, prefix="buyer")
                 if buyer_form.is_valid():
                     buyer = buyer_form.save()
                 else:
                     messages.error(request, "Please fix buyer form errors.")
-                    # fall through to render with errors
 
-            # Decide plot: existing or new
+            # ---------------- Plot ----------------
             plot_choice = request.POST.get("plot_select")
             if plot_choice and plot_choice != "new":
                 plot = get_object_or_404(Plot, id=int(plot_choice))
+                plot_form = PlotForm(request.POST, instance=plot, prefix="plot")
+                if plot_form.is_valid():
+                    plot = plot_form.save()  # ✅ updates existing plot
+                else:
+                    messages.error(request, "Please fix plot form errors.")
             else:
                 plot_form = PlotForm(request.POST, prefix="plot")
                 if plot_form.is_valid():
                     plot = plot_form.save()
                 else:
                     messages.error(request, "Please fix plot form errors.")
-                    # fall through to render with errors
 
-            # If any form invalid, render page with errors
-            # Check forms validity before creating booking
-            if (buyer_choice == "new" and not buyer_form.is_valid()) or (
-                plot_choice == "new" and not plot_form.is_valid()
+            # ---------------- Booking ----------------
+            booking_form = BookingForm(request.POST, prefix="booking")
+            if (
+                buyer_form.is_valid()
+                and plot_form.is_valid()
+                and booking_form.is_valid()
             ):
-                # fall through to render with forms containing errors
-                pass
+                booking = booking_form.save(commit=False)
+                booking.buyer = buyer
+                booking.plot = plot
+                booking.save()
+
+                # Mark plot as sold
+                plot.status = "sold"
+                plot.save()
+
+                messages.success(request, "Booking created successfully.")
+                return redirect("booking_detail", booking_id=booking.id)
             else:
-                # Booking details
-                booking_form = BookingForm(request.POST, prefix="booking")
-                if booking_form.is_valid():
-                    booking = booking_form.save(commit=False)
-                    booking.buyer = buyer
-                    booking.plot = plot
-                    booking.save()
-
-                    # Set plot status to sold
-                    plot.status = "sold"
-                    plot.save()
-
-                    messages.success(request, "Booking created successfully.")
-                    return redirect("booking_detail", booking_id=booking.id)
-                else:
-                    messages.error(request, "Please fix booking form errors.")
+                messages.error(request, "Please fix all form errors below.")
 
     context = {
         "buyer_form": buyer_form,
@@ -193,6 +199,7 @@ def create_booking_combined(request):
         "plots": plots,
     }
     return render(request, "bookings/booking_create_combined.html", context)
+
 
 @require_GET
 @staff_required
@@ -207,13 +214,16 @@ def api_get_plot(request, pk):
         "width_ft": str(plot.width_ft) if plot.width_ft is not None else "",
         "size_sqft": str(plot.size_sqft) if plot.size_sqft is not None else "",
         "price": str(plot.price),
-        "price_per_sqft": str(plot.price_per_sqft) if plot.price_per_sqft is not None else "",
+        "price_per_sqft": (
+            str(plot.price_per_sqft) if plot.price_per_sqft is not None else ""
+        ),
         "is_corner": plot.is_corner,
         "facing_direction": plot.facing_direction or "",
         "block_name": plot.block_name or "",
         "status": plot.status,
     }
     return JsonResponse(data)
+
 
 @require_GET
 @staff_required

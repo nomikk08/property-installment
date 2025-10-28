@@ -248,4 +248,57 @@
   });
 </script>
 
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // For each error message, mark its associated input as invalid
+    document.querySelectorAll("ul.errorlist").forEach((errorList) => {
+      // Django usually renders errorlist *before* the field input
+      let inputField = errorList.nextElementSibling;
+
+      // Handle case when it's wrapped in a <p> tag
+      if (inputField && inputField.querySelector("input, select, textarea")) {
+        inputField = inputField.querySelector("input, select, textarea");
+      }
+
+      // Direct field case
+      if (
+        inputField &&
+        ["INPUT", "SELECT", "TEXTAREA"].includes(inputField.tagName)
+      ) {
+        inputField.classList.add("field-error");
+      }
+    });
+  });
+</script>
+
+<style>
+  /* 🔴 Django error list styling */
+  ul.errorlist {
+    margin: 4px 0 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  ul.errorlist li {
+    background-color: #fee2e2; /* red-200 */
+    color: #b91c1c; /* red-700 */
+    border: 1px solid #fecaca; /* red-300 */
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.875rem; /* text-sm */
+    margin-bottom: 4px;
+  }
+
+  /* 🧱 Highlight invalid fields */
+  .field-error {
+    border-color: #dc2626 !important; /* red-600 */
+    background-color: #fef2f2 !important; /* red-50 */
+  }
+
+  .field-error:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.4);
+  }
+</style>
+
 {% endblock %}

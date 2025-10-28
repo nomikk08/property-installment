@@ -5,6 +5,20 @@ from bookings.models import Booking, Payment
 from expenses.models import Expense
 
 
+class PaymentSource(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Payment Source"
+        verbose_name_plural = "Payment Sources"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Transaction(models.Model):
     TRANSACTION_TYPES = [
         ("credit", "Credit"),
@@ -15,6 +29,13 @@ class Transaction(models.Model):
     type = models.CharField(max_length=6, choices=TRANSACTION_TYPES)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     description = models.CharField(max_length=255, blank=True)
+    source = models.ForeignKey(
+        "reports.PaymentSource",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="transactions",
+    )
     related_payment = models.ForeignKey(
         Payment,
         on_delete=models.SET_NULL,

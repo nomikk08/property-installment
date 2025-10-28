@@ -67,3 +67,6 @@ tailwind:
 
 add-plots:
 	$(MANAGE) "python manage.py import_plots"
+
+payment-sources:
+	$(MANAGE) "python manage.py seed_payment_sources"

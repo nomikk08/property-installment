@@ -1,11 +1,18 @@
+# transactions/signals.py
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from bookings.models import Payment, Booking
 from expenses.models import Expense
-from .models import Transaction
+from .models import Transaction, PaymentSource
 
 
-# 🔹 When a payment is marked as paid → record a Credit
+def get_default_source():
+    """Return 'Cash' PaymentSource, create it if missing."""
+    source, _ = PaymentSource.objects.get_or_create(name="Cash")
+    return source
+
+
 @receiver(post_save, sender=Payment)
 def create_credit_transaction(sender, instance, created, **kwargs):
     if instance.is_paid:
@@ -17,11 +24,11 @@ def create_credit_transaction(sender, instance, created, **kwargs):
                 "amount": instance.amount,
                 "description": f"Installment from {instance.booking.buyer.name}",
                 "related_booking": instance.booking,
+                "source": get_default_source(),
             },
         )
 
 
-# 🔹 When a new Expense is added → record a Debit
 @receiver(post_save, sender=Expense)
 def create_debit_transaction(sender, instance, created, **kwargs):
     if created:
@@ -31,10 +38,10 @@ def create_debit_transaction(sender, instance, created, **kwargs):
             amount=instance.amount,
             description=f"{instance.title} ({instance.category.name})",
             related_expense=instance,
+            source=get_default_source(),
         )
 
 
-# 🔹 When a new Booking is added → record Down Payment as Credit
 @receiver(post_save, sender=Booking)
 def create_booking_downpayment_transaction(sender, instance, created, **kwargs):
     if created and instance.down_payment_amount > 0:
@@ -44,4 +51,5 @@ def create_booking_downpayment_transaction(sender, instance, created, **kwargs):
             amount=instance.down_payment_amount,
             description=f"Down Payment from {instance.buyer.name} ({instance.plot.title})",
             related_booking=instance,
+            source=get_default_source(),
         )

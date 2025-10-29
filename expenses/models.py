@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from bookings.models import PaymentSource
 
 
 class ExpenseCategory(models.Model):
@@ -18,6 +19,14 @@ class Expense(models.Model):
         ExpenseCategory, on_delete=models.CASCADE, related_name="expenses"
     )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    source = models.ForeignKey(
+        PaymentSource,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="expenses",
+        help_text="Select how this expense was paid (e.g., Cash, Bank)",
+    )
     description = models.TextField(blank=True, null=True)
     date = models.DateField(default=timezone.now)
     created_at = models.DateTimeField(auto_now_add=True)

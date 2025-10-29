@@ -1,14 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from bookings.models import Payment, Booking, PaymentSource
+from bookings.models import Payment, Booking
 from expenses.models import Expense
 from .models import Transaction
-
-
-def get_default_source():
-    """Return 'Cash' PaymentSource, create it if missing."""
-    source, _ = PaymentSource.objects.get_or_create(name="Cash")
-    return source
 
 
 @receiver(post_save, sender=Payment)
@@ -36,7 +30,7 @@ def create_debit_transaction(sender, instance, created, **kwargs):
             amount=instance.amount,
             description=f"{instance.title} ({instance.category.name})",
             related_expense=instance,
-            source=get_default_source(),
+            source=instance.source,
         )
 
 

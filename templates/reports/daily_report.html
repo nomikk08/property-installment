@@ -1,4 +1,5 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
+{% block content %}
 
 <div class="max-w-7xl mx-auto py-10 px-6">
   <h1 class="text-2xl font-bold mb-6">📅 Daily Ledger Report</h1>
@@ -40,12 +41,9 @@
           <tr>
             <th class="py-3 px-4 border-b text-left">#</th>
             <th class="py-3 px-4 border-b text-left">Description</th>
-            <th class="py-3 px-4 border-b text-green-700 text-right">
-              Credit (+)
-            </th>
-            <th class="py-3 px-4 border-b text-red-700 text-right">
-              Debit (–)
-            </th>
+            <th class="py-3 px-4 border-b text-left">Source</th>
+            <th class="py-3 px-4 border-b text-green-700 text-right">Credit (+)</th>
+            <th class="py-3 px-4 border-b text-red-700 text-right">Debit (–)</th>
             <th class="py-3 px-4 border-b text-left">Linked To</th>
           </tr>
         </thead>
@@ -54,6 +52,7 @@
           <tr class="hover:bg-gray-50 transition">
             <td class="py-2 px-4">{{ forloop.counter }}</td>
             <td class="py-2 px-4">{{ t.description|default:"—" }}</td>
+            <td class="py-2 px-4">{{ t.source.name|default:"—" }}</td>
             <td class="py-2 px-4 text-right text-green-700 font-medium">
               {% if t.type == 'credit' %}Rs {{ t.amount }}{% else %}—{% endif %}
             </td>
@@ -61,13 +60,18 @@
               {% if t.type == 'debit' %}Rs {{ t.amount }}{% else %}—{% endif %}
             </td>
             <td class="py-2 px-4">
-              {% if t.booking %} Booking #{{ t.booking.id }} {% elif t.expense
-              %} {{ t.expense.category.name }} {% else %} — {% endif %}
+              {% if t.related_booking %}
+                Booking #{{ t.related_booking.id }}
+              {% elif t.related_expense %}
+                {{ t.related_expense.category.name }}
+              {% else %}
+                —
+              {% endif %}
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="5" class="py-4 text-center text-gray-500">
+            <td colspan="6" class="py-4 text-center text-gray-500">
               No transactions recorded for this date.
             </td>
           </tr>
@@ -75,7 +79,7 @@
         </tbody>
         <tfoot class="bg-gray-50 font-semibold text-gray-800">
           <tr>
-            <td colspan="2" class="py-3 px-4 text-right">Total Credit:</td>
+            <td colspan="3" class="py-3 px-4 text-right">Total Credit:</td>
             <td class="py-3 px-4 text-right text-green-700">
               Rs {{ total_credit }}
             </td>
@@ -85,7 +89,7 @@
             <td></td>
           </tr>
           <tr class="border-t">
-            <td colspan="2" class="py-3 px-4 text-right">Closing Balance:</td>
+            <td colspan="3" class="py-3 px-4 text-right">Closing Balance:</td>
             <td
               colspan="3"
               class="py-3 px-4 text-right {% if closing_balance >= 0 %}text-green-700{% else %}text-red-700{% endif %}"
@@ -97,6 +101,113 @@
       </table>
     </div>
   </div>
+
+  <!-- 🏦 Source Summary -->
+{% if source_summaries %}
+<div class="bg-white shadow rounded-lg border mb-8">
+  <div class="border-b px-6 py-4">
+    <h2 class="text-xl font-semibold text-gray-800">🏦 Source Summary</h2>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm border-collapse">
+      <thead class="bg-gray-100 text-gray-600 uppercase">
+        <tr>
+          <th class="py-3 px-4 border-b text-left">Source</th>
+          <th class="py-3 px-4 border-b text-right text-green-700">Credit (+)</th>
+          <th class="py-3 px-4 border-b text-right text-red-700">Debit (–)</th>
+          <th class="py-3 px-4 border-b text-right">Net</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y">
+        {% for s in source_summaries %}
+          {% with net=s.credit_total|default:0|floatformat:2 %}
+            {% with net_value=s.credit_total|default:0|floatformat:"2" %}
+            {% endwith %}
+          {% endwith %}
+
+          {% with net_value=s.credit_total|default:0|floatformat:2 %}
+          {% with debit_value=s.debit_total|default:0|floatformat:2 %}
+          {% with net=s.credit_total|default:0|floatformat:2 %}
+          {% endwith %}
+          {% endwith %}
+          {% endwith %}
+
+          {% with net=s.credit_total|default_if_none:0|floatformat:2 %}
+          {% with diff=s.credit_total|default_if_none:0|floatformat:"0" %}
+          {% endwith %}
+          {% endwith %}
+
+          {% with net_value=s.credit_total|default_if_none:0|floatformat:0 %}
+          {% endwith %}
+
+          {% with net=s.credit_total|default_if_none:0|floatformat:2 %}
+          {% with debit=s.debit_total|default_if_none:0|floatformat:2 %}
+            {% with diff=s.credit_total|default_if_none:0|floatformat:0 %}
+            {% endwith %}
+          {% endwith %}
+          {% endwith %}
+
+          {% with net_val=s.credit_total|default_if_none:0|floatformat:"2" %}
+          {% with deb_val=s.debit_total|default_if_none:0|floatformat:"2" %}
+          {% endwith %}
+          {% endwith %}
+
+          {% with net_val=s.credit_total|default_if_none:0 %}
+          {% with deb_val=s.debit_total|default_if_none:0 %}
+          {% with net_total=net_val|add:0 %}
+          {% endwith %}
+          {% endwith %}
+          {% endwith %}
+
+          {% with net_amount=s.credit_total|default_if_none:0|floatformat:2 %}
+          {% endwith %}
+
+          {% with net_total=s.credit_total|default_if_none:0 %}
+          {% with debit_total=s.debit_total|default_if_none:0 %}
+          {% with net=net_total|floatformat:"0" %}
+          {% endwith %}
+          {% endwith %}
+          {% endwith %}
+
+          {% with net=s.credit_total|default_if_none:0|floatformat:"2" %}
+          {% with deb=s.debit_total|default_if_none:0|floatformat:"2" %}
+          {% with net_value=s.credit_total|default_if_none:0|floatformat:"2" %}
+          {% endwith %}
+          {% endwith %}
+          {% endwith %}
+
+          {% with net_value=s.credit_total|default_if_none:0|floatformat:"2" %}
+          {% endwith %}
+
+          {% with credit_val=s.credit_total|default_if_none:0 %}
+          {% with debit_val=s.debit_total|default_if_none:0 %}
+          {% with net_val=credit_val|add:"-debit_val" %}
+          <tr class="hover:bg-gray-50 transition">
+            <td class="py-2 px-4">{{ s.source__name|default:"—" }}</td>
+            <td class="py-2 px-4 text-right text-green-700">
+              Rs {{ credit_val }}
+            </td>
+            <td class="py-2 px-4 text-right text-red-700">
+              Rs {{ debit_val }}
+            </td>
+            <td
+              class="py-2 px-4 text-right {% if net_val >= 0 %}text-green-700{% else %}text-red-700{% endif %}"
+            >
+              Rs {{ net_val }}
+            </td>
+          </tr>
+          {% endwith %}
+          {% endwith %}
+          {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
 
   <!-- 📊 Summary Card -->
   <div class="bg-gray-50 border rounded p-6 text-center">

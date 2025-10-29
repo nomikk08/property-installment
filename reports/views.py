@@ -99,7 +99,6 @@ def download_earnings_pdf(request):
     start_date = parse_flexible_date(request.GET.get("start_date"))
     end_date = parse_flexible_date(request.GET.get("end_date"))
     source_id = request.GET.get("source")
-    print("XXXXXXXXXXXXXXXXX", start_date, end_date, source_id, flush=True)
 
     transactions_qs = Transaction.objects.select_related("source").all()
 
@@ -212,23 +211,36 @@ def daily_report(request):
     # ✅ Selected date (default = today)
     selected_date = parse_flexible_date(request.GET.get("date"))
 
-    # ✅ All debit/credit transactions for the selected date
+    # ✅ Transactions for that date
     transactions = (
         Transaction.objects.filter(date=selected_date)
-        .select_related("related_booking", "related_expense")
+        .select_related("related_booking", "related_expense", "source")
         .order_by("id")
     )
 
-    # ✅ Totals
+    # ✅ Overall totals
     total_credit = (
         transactions.filter(type="credit").aggregate(total=Sum("amount"))["total"] or 0
     )
     total_debit = (
         transactions.filter(type="debit").aggregate(total=Sum("amount"))["total"] or 0
     )
-
-    # ✅ Closing balance (net profit)
     closing_balance = total_credit - total_debit
+
+    # ✅ Group summary by payment source
+    source_summaries = (
+        transactions.values("source__name")
+        .annotate(
+            credit_total=Sum("amount", filter=Q(type="credit")),
+            debit_total=Sum("amount", filter=Q(type="debit")),
+        )
+        .order_by("source__name")
+    )
+
+    # Remove any sources where both credit and debit are None (no transactions)
+    source_summaries = [
+        s for s in source_summaries if (s["credit_total"] or s["debit_total"])
+    ]
 
     context = {
         "selected_date": selected_date,
@@ -236,6 +248,7 @@ def daily_report(request):
         "total_credit": total_credit,
         "total_debit": total_debit,
         "closing_balance": closing_balance,
+        "source_summaries": source_summaries,
     }
 
     return render(request, "reports/daily_report.html", context)
@@ -247,64 +260,120 @@ def daily_report(request):
 def download_daily_report_pdf(request):
     selected_date = parse_flexible_date(request.GET.get("date"))
 
-    daily_credits = Transaction.objects.filter(date=selected_date, type="credit")
-    daily_debits = Transaction.objects.filter(date=selected_date, type="debit")
+    transactions = (
+        Transaction.objects.filter(date=selected_date)
+        .select_related("source")
+        .order_by("type", "id")
+    )
+
+    # ✅ Separate credits and debits
+    daily_credits = transactions.filter(type="credit")
+    daily_debits = transactions.filter(type="debit")
 
     total_credit = daily_credits.aggregate(total=Sum("amount"))["total"] or 0
     total_debit = daily_debits.aggregate(total=Sum("amount"))["total"] or 0
     net_balance = total_credit - total_debit
 
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = (
-        f"attachment; filename=Daily_Report_{selected_date}.pdf"
+    # ✅ Source Summary
+    source_summary = (
+        transactions.values("source__name")
+        .annotate(
+            credit_total=Sum("amount", filter=Q(type="credit")),
+            debit_total=Sum("amount", filter=Q(type="debit")),
+        )
+        .order_by("source__name")
     )
+
+    response = HttpResponse(content_type="application/pdf")
+    filename = f"Daily_Report_{selected_date}.pdf"
+    response["Content-Disposition"] = f"attachment; filename={filename}"
 
     p = canvas.Canvas(response, pagesize=A4)
     width, height = A4
     y = height - inch
 
+    # --- HEADER ---
     p.setFont("Helvetica-Bold", 16)
-    p.drawString(200, y, "Daily Debit/Credit Report")
+    p.drawCentredString(width / 2, y, "Abrar Green City — Daily Report")
     y -= 25
-    p.setFont("Helvetica", 12)
-    p.drawString(220, y, f"Date: {selected_date}")
+    p.setFont("Helvetica", 11)
+    p.drawCentredString(
+        width / 2,
+        y,
+        f"Date: {selected_date} | Generated: {timezone.now().strftime('%b %d, %Y, %I:%M %p')}",
+    )
     y -= 40
 
-    # --- Credits (Income) ---
+    # --- CREDITS (INCOME) ---
     p.setFont("Helvetica-Bold", 13)
     p.drawString(50, y, "💰 Credits (Income)")
     y -= 20
     p.setFont("Helvetica", 10)
     for t in daily_credits:
-        p.drawString(60, y, f"{t.description or 'Credit'} — Rs {t.amount}")
+        src = t.source.name if t.source else "—"
+        desc = t.description or "Credit"
+        p.drawString(60, y, f"{desc} — {src} — Rs {t.amount}")
         y -= 15
-        if y < 50:
+        if y < 60:
             p.showPage()
             y = height - inch
-
-    p.setFont("Helvetica-Bold", 11)
+            p.setFont("Helvetica", 10)
     y -= 10
+    p.setFont("Helvetica-Bold", 11)
     p.drawString(60, y, f"Total Credit: Rs {total_credit}")
     y -= 30
 
-    # --- Debits (Expenses) ---
+    # --- DEBITS (EXPENSES) ---
     p.setFont("Helvetica-Bold", 13)
     p.drawString(50, y, "💸 Debits (Expenses)")
     y -= 20
     p.setFont("Helvetica", 10)
     for t in daily_debits:
-        p.drawString(60, y, f"{t.description or 'Debit'} — Rs {t.amount}")
+        src = t.source.name if t.source else "—"
+        desc = t.description or "Debit"
+        p.drawString(60, y, f"{desc} — {src} — Rs {t.amount}")
         y -= 15
-        if y < 50:
+        if y < 60:
             p.showPage()
             y = height - inch
-
-    p.setFont("Helvetica-Bold", 11)
+            p.setFont("Helvetica", 10)
     y -= 10
+    p.setFont("Helvetica-Bold", 11)
     p.drawString(60, y, f"Total Debit: Rs {total_debit}")
     y -= 40
 
-    # --- Summary ---
+    # --- SOURCE SUMMARY ---
+    if source_summary:
+        p.setFont("Helvetica-Bold", 13)
+        p.drawString(50, y, "🏦 Source Summary")
+        y -= 20
+        p.setFont("Helvetica-Bold", 10)
+        p.drawString(60, y, "Source")
+        p.drawString(220, y, "Credit")
+        p.drawString(320, y, "Debit")
+        p.drawString(420, y, "Net")
+        y -= 10
+        p.line(50, y, 550, y)
+        y -= 10
+        p.setFont("Helvetica", 9)
+        for s in source_summary:
+            src_name = s["source__name"] or "—"
+            credit = s["credit_total"] or 0
+            debit = s["debit_total"] or 0
+            net = credit - debit
+            p.drawString(60, y, src_name[:25])
+            p.drawString(220, y, f"Rs {credit}")
+            p.drawString(320, y, f"Rs {debit}")
+            color = "green" if net >= 0 else "red"
+            p.drawString(420, y, f"Rs {net}")
+            y -= 15
+            if y < 60:
+                p.showPage()
+                y = height - inch
+                p.setFont("Helvetica", 9)
+        y -= 30
+
+    # --- SUMMARY ---
     p.setFont("Helvetica-Bold", 13)
     label = "Profit" if net_balance >= 0 else "Loss"
     p.drawString(50, y, f"Net {label}: Rs {net_balance}")

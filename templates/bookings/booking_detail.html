@@ -102,6 +102,7 @@
           <th class="py-3 px-4">Amount</th>
           <th class="py-3 px-4">Paid Date</th>
           <th class="py-3 px-4">Received By</th>
+          <th class="py-3 px-4">Source</th>
           <th class="py-3 px-4">Status</th>
           <th class="py-3 px-4 text-center">Action</th>
         </tr>
@@ -135,6 +136,15 @@
               </select>
             </td>
 
+            <td class="py-3 px-4">
+              <select name="payment_source" class="border rounded p-1 w-full">
+                <option value="">— Select Source —</option>
+                  {% for src in payment_sources %}
+                    <option value="{{ src.id }}" {% if payment.source_id == src.id %}selected{% endif %}>{{ src.name }}</option>
+                  {% endfor %}
+              </select>
+            </td>
+
             <td class="py-3 px-4 text-yellow-700 font-medium">Next Due ⚠</td>
 
             <td class="py-3 px-4 text-center">
@@ -148,7 +158,7 @@
           <td class="py-3 px-4">Rs {{ payment.amount }}</td>
           <td class="py-3 px-4">{{ payment.paid_date|default:"—" }}</td>
           <td class="py-3 px-4">{{ payment.get_received_by_display|default:"—" }}</td>
-          <td class="py-3 px-4">{{ payment.notes|default:"—" }}</td>
+          <td class="py-3 px-4">{{ payment.source.name|default:"-" }}</td>
           <td class="py-3 px-4">
             {% if payment.is_paid %}
               <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">Paid ✅</span>

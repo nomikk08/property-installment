@@ -7,7 +7,7 @@ from django.db import transaction
 from django.views.decorators.http import require_GET
 
 from .forms import BuyerForm, PlotForm, BookingForm
-from .models import Booking, Payment
+from .models import Booking, Payment, PaymentSource
 
 from accounts.models import Buyer
 from plots.models import Plot
@@ -34,18 +34,20 @@ def bookings_page(request):
 def booking_detail(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
     payments = booking.payments.order_by("due_date")
-
-    # Identify next due payment (first unpaid one)
     next_due = payments.filter(is_paid=False).order_by("due_date").first()
+    payment_sources = PaymentSource.objects.filter(is_active=True)
 
     if request.method == "POST" and next_due:
-        # Allow editing next due payment only
         if str(next_due.id) == request.POST.get("payment_id"):
             next_due.due_date = request.POST.get("due_date") or next_due.due_date
             next_due.amount = request.POST.get("amount") or next_due.amount
             next_due.received_by = (
                 request.POST.get("received_by") or next_due.received_by
             )
+
+            source_id = request.POST.get("payment_source")
+            if source_id:
+                next_due.source_id = source_id
 
             if "mark_paid" in request.POST:
                 next_due.is_paid = True
@@ -60,7 +62,12 @@ def booking_detail(request, booking_id):
     return render(
         request,
         "bookings/booking_detail.html",
-        {"booking": booking, "payments": payments, "next_due": next_due},
+        {
+            "booking": booking,
+            "payments": payments,
+            "next_due": next_due,
+            "payment_sources": payment_sources,
+        },
     )
 
 
@@ -83,7 +90,7 @@ def mark_payment_paid(request, payment_id):
 
 def download_booking_pdf(request, pk):
     booking = Booking.objects.select_related("buyer", "plot").get(id=pk)
-    payments = booking.payments.all().order_by("due_date")
+    payments = booking.payments.select_related("source").all().order_by("due_date")
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f"attachment; filename=Booking_{booking.id}.pdf"
@@ -94,7 +101,7 @@ def download_booking_pdf(request, pk):
 
     # -------- HEADER --------
     p.setFont("Helvetica-Bold", 16)
-    p.drawCentredString(width / 2, y, f"Abrar Green City - Booking Report")
+    p.drawCentredString(width / 2, y, "Abrar Green City - Booking Report")
     y -= 20
     p.setFont("Helvetica", 10)
     p.drawCentredString(
@@ -177,6 +184,7 @@ def download_booking_pdf(request, pk):
     p.drawString(190, y, "Status")
     p.drawString(250, y, "Paid Date")
     p.drawString(320, y, "Received By")
+    p.drawString(420, y, "Source")
     y -= 15
     p.line(50, y, 550, y)
     y -= 10
@@ -192,12 +200,14 @@ def download_booking_pdf(request, pk):
         status = "✅ PAID" if pay.is_paid else "⏳ Pending"
         paid_date = pay.paid_date.strftime("%Y-%m-%d") if pay.paid_date else "-"
         receiver = pay.get_received_by_display() if pay.received_by else "-"
+        source = pay.source.name if getattr(pay, "source", None) else "-"
 
         p.drawString(50, y, str(pay.due_date))
         p.drawString(120, y, f"Rs {pay.amount}")
         p.drawString(190, y, status)
         p.drawString(250, y, paid_date)
         p.drawString(320, y, receiver[:15])
+        p.drawString(420, y, source[:20])
         y -= 15
 
     p.showPage()

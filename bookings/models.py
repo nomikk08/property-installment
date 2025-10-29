@@ -4,11 +4,20 @@ from accounts.models import Buyer
 from plots.models import Plot
 from django.db.models import Sum
 
+
 class Booking(models.Model):
     buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="bookings")
     plot = models.OneToOneField(Plot, on_delete=models.CASCADE)
     installment_months = models.IntegerField(default=24)
     down_payment_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    source = models.ForeignKey(
+        "bookings.PaymentSource",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="bookings",
+        verbose_name="Payment Source",
+    )
     monthly_installment = models.DecimalField(max_digits=12, decimal_places=2)
     commission_paid = models.DecimalField(
         blank=True,

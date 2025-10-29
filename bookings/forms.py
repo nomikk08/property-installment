@@ -2,7 +2,8 @@
 from django import forms
 from accounts.models import Buyer
 from plots.models import Plot
-from .models import Booking
+from .models import Booking, PaymentSource
+
 
 class BuyerForm(forms.ModelForm):
     class Meta:
@@ -21,6 +22,7 @@ class BuyerForm(forms.ModelForm):
             "address": forms.Textarea(attrs={"rows": 2}),
         }
 
+
 class PlotForm(forms.ModelForm):
     class Meta:
         model = Plot
@@ -38,12 +40,21 @@ class PlotForm(forms.ModelForm):
             "block_name",
         ]
 
+
 class BookingForm(forms.ModelForm):
     class Meta:
         model = Booking
         fields = [
             "installment_months",
             "down_payment_amount",
+            "source",
             "monthly_installment",
             "commission_paid",
         ]
+    
+    source = forms.ModelChoiceField(
+        queryset=PaymentSource.objects.filter(is_active=True),
+        required=False,
+        label="Payment Source",
+        help_text="Choose how the initial payment was made",
+    )

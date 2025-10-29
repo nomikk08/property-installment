@@ -49,5 +49,5 @@ def create_booking_downpayment_transaction(sender, instance, created, **kwargs):
             amount=instance.down_payment_amount,
             description=f"Down Payment from {instance.buyer.name} ({instance.plot.title})",
             related_booking=instance,
-            source=get_default_source(),
+            source=instance.source,
         )

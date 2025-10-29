@@ -122,6 +122,8 @@ def download_booking_pdf(request, pk):
     y -= 15
     p.drawString(60, y, f"Total Paid: Rs {booking.total_paid_amount}")
     y -= 15
+    p.drawString(60, y, f"Source: {booking.source.name if booking.source else '-'}")
+    y -= 15
     remaining = float(booking.plot.price or 0) - float(booking.total_paid_amount or 0)
     p.drawString(60, y, f"Remaining Balance: Rs {remaining:.2f}")
     y -= 25
@@ -218,12 +220,9 @@ def download_booking_pdf(request, pk):
 @staff_required
 @staff_required
 def create_booking_combined(request):
-    """
-    Unified page to select/add Buyer and Plot and create Booking.
-    If existing Buyer or Plot selected, update their data if changed.
-    """
     buyers = Buyer.objects.order_by("name")[:200]
     plots = Plot.objects.filter(status="available").order_by("title")[:500]
+    payment_sources = PaymentSource.objects.filter(is_active=True)
 
     buyer_form = BuyerForm(prefix="buyer")
     plot_form = PlotForm(prefix="plot")
@@ -237,7 +236,7 @@ def create_booking_combined(request):
                 buyer = get_object_or_404(Buyer, id=int(buyer_choice))
                 buyer_form = BuyerForm(request.POST, instance=buyer, prefix="buyer")
                 if buyer_form.is_valid():
-                    buyer = buyer_form.save()  # ✅ updates existing buyer
+                    buyer = buyer_form.save()
                 else:
                     messages.error(request, "Please fix buyer form errors.")
             else:
@@ -253,7 +252,7 @@ def create_booking_combined(request):
                 plot = get_object_or_404(Plot, id=int(plot_choice))
                 plot_form = PlotForm(request.POST, instance=plot, prefix="plot")
                 if plot_form.is_valid():
-                    plot = plot_form.save()  # ✅ updates existing plot
+                    plot = plot_form.save()
                 else:
                     messages.error(request, "Please fix plot form errors.")
             else:
@@ -275,11 +274,10 @@ def create_booking_combined(request):
                 booking.plot = plot
                 booking.save()
 
-                # Mark plot as sold
                 plot.status = "sold"
                 plot.save()
 
-                messages.success(request, "Booking created successfully.")
+                messages.success(request, "✅ Booking created successfully.")
                 return redirect("booking_detail", booking_id=booking.id)
             else:
                 messages.error(request, "Please fix all form errors below.")
@@ -290,6 +288,7 @@ def create_booking_combined(request):
         "booking_form": booking_form,
         "buyers": buyers,
         "plots": plots,
+        "payment_sources": payment_sources,
     }
     return render(request, "bookings/booking_create_combined.html", context)
 

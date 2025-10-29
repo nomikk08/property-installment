@@ -1,10 +1,8 @@
-# transactions/signals.py
-
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from bookings.models import Payment, Booking
+from bookings.models import Payment, Booking, PaymentSource
 from expenses.models import Expense
-from .models import Transaction, PaymentSource
+from .models import Transaction
 
 
 def get_default_source():
@@ -24,7 +22,7 @@ def create_credit_transaction(sender, instance, created, **kwargs):
                 "amount": instance.amount,
                 "description": f"Installment from {instance.booking.buyer.name}",
                 "related_booking": instance.booking,
-                "source": get_default_source(),
+                "source": instance.source,
             },
         )
 

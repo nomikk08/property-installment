@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Booking, Payment
+from .models import Booking, Payment, PaymentSource
 
 
 class PaymentInline(admin.TabularInline):
@@ -25,3 +25,9 @@ class BookingAdmin(admin.ModelAdmin):
         "total_paid_amount",
     )
     inlines = [PaymentInline]
+
+
+@admin.register(PaymentSource)
+class PaymentSourceAdmin(admin.ModelAdmin):
+    list_display = ("name", "is_active", "description")
+    list_filter = ("is_active",)

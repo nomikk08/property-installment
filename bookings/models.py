@@ -4,7 +4,6 @@ from accounts.models import Buyer
 from plots.models import Plot
 from django.db.models import Sum
 
-
 class Booking(models.Model):
     buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="bookings")
     plot = models.OneToOneField(Plot, on_delete=models.CASCADE)
@@ -54,6 +53,20 @@ class Booking(models.Model):
         return self.installment_months - self.paid_installments
 
 
+class PaymentSource(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Payment Source"
+        verbose_name_plural = "Payment Sources"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Payment(models.Model):
     RECEIVER_CHOICES = [
         ("tasawur", "Tasawur"),
@@ -63,6 +76,14 @@ class Payment(models.Model):
         Booking, on_delete=models.CASCADE, related_name="payments"
     )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    source = models.ForeignKey(
+        PaymentSource,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payments",
+        verbose_name="Payment Source",
+    )
     due_date = models.DateField()
     received_by = models.CharField(
         max_length=50, choices=RECEIVER_CHOICES, default="abdul_ghafoor"

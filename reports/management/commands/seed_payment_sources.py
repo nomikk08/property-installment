@@ -1,7 +1,7 @@
 # transactions/management/commands/seed_payment_sources.py
 
 from django.core.management.base import BaseCommand
-from reports.models import PaymentSource
+from bookings.models import PaymentSource
 
 
 class Command(BaseCommand):

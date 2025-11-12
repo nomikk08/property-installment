@@ -21,13 +21,23 @@ class Buyer(models.Model):
         verbose_name="CNIC Number",
     )
     address = models.TextField(verbose_name="Address")
-    inheritor = models.CharField(max_length=100, verbose_name="Inheritor's Name")
+    inheritor = models.CharField(
+        max_length=100,
+        verbose_name="Inheritor's Name",
+        blank=True,
+        null=True,
+    )
     inheritor_cnic = models.CharField(
         max_length=16,
         verbose_name="Inheritor's CNIC",
+        blank=True,
+        null=True,
     )
     inheritor_relation = models.CharField(
-        max_length=50, verbose_name="Relation with Inheritor"
+        max_length=50,
+        verbose_name="Relation with Inheritor",
+        blank=True,
+        null=True,
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
 

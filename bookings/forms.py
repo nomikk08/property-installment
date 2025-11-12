@@ -3,6 +3,7 @@ from django import forms
 from accounts.models import Buyer
 from plots.models import Plot
 from .models import Booking, PaymentSource
+from datetime import date
 
 
 class BuyerForm(forms.ModelForm):
@@ -45,16 +46,28 @@ class BookingForm(forms.ModelForm):
     class Meta:
         model = Booking
         fields = [
+            "start_date",
             "installment_months",
             "down_payment_amount",
             "source",
             "monthly_installment",
             "commission_paid",
         ]
-    
+
     source = forms.ModelChoiceField(
         queryset=PaymentSource.objects.filter(is_active=True),
         required=False,
         label="Payment Source",
         help_text="Choose how the initial payment was made",
+    )
+
+    start_date = forms.DateField(
+        widget=forms.DateInput(
+            attrs={
+                "type": "date",  # shows calendar picker in modern browsers
+                # "class": "form-control",  # optional Bootstrap/Tailwind styling
+            }
+        ),
+        initial=date.today,
+        label="Start Date",
     )

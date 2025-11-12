@@ -39,13 +39,12 @@
       <h2 class="text-lg font-semibold mb-3 text-gray-800 border-b pb-2">
         Booking Details
       </h2>
-      <p><strong>Booking Date:</strong> {{ booking.booking_date|date:"M d, Y" }}</p>
+      <p><strong>Booking Date:</strong> {{ booking.start_date|date:"M d, Y" }}</p>
       <p><strong>Installment Months:</strong> {{ booking.installment_months }}</p>
       <p><strong>Monthly Installment:</strong> Rs {{ booking.monthly_installment }}</p>
       <p><strong>Down Payment:</strong> Rs {{ booking.down_payment_amount }}</p>
       <p><strong>Total Paid:</strong> Rs {{ booking.total_paid_amount }}</p>
       <p><strong>Remaining Months:</strong> {{ booking.remaining_installments }}</p>
-      <p><strong>Notes:</strong> {{ booking.notes|default:"—" }}</p>
       <p class="mt-2">
         <strong>Status:</strong>
         {% if booking.is_completed %}
@@ -176,5 +175,11 @@
     </table>
   </div>
 </div>
+
+<style>
+  ::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
+</style>
 
 {% endblock %}

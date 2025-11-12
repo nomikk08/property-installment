@@ -4,6 +4,8 @@ from accounts.models import Buyer
 from plots.models import Plot
 from django.db.models import Sum
 
+from datetime import date
+
 
 class Booking(models.Model):
     buyer = models.ForeignKey(Buyer, on_delete=models.CASCADE, related_name="bookings")
@@ -26,7 +28,7 @@ class Booking(models.Model):
         decimal_places=2,
         verbose_name="Commission Paid",
     )
-    start_date = models.DateField(auto_now_add=True)
+    start_date = models.DateField(default=date.today)
     is_completed = models.BooleanField(default=False)
 
     def __str__(self):

@@ -12,7 +12,7 @@ def create_first_payment(sender, instance, created, **kwargs):
     When a Booking is created, create the first Payment if none exist.
     """
     if created and not instance.payments.exists():
-        first_due_date = timezone.now().date() + timedelta(days=30)
+        first_due_date = instance.start_date + timedelta(days=30)
         Payment.objects.create(
             booking=instance,
             amount=instance.monthly_installment,
@@ -37,7 +37,7 @@ def create_next_payment(sender, instance, created, **kwargs):
     if instance.is_paid and total_paid_count < total_months:
         # Find the last payment (for due date)
         last_payment = booking.payments.order_by("-due_date").first()
-        next_due_date = last_payment.due_date + timedelta(days=30)
+        next_due_date = last_payment.paid_date + timedelta(days=30)
 
         # Only create if there isn't already a payment with this due date
         if not booking.payments.filter(due_date=next_due_date).exists():

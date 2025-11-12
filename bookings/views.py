@@ -40,6 +40,7 @@ def booking_detail(request, booking_id):
     if request.method == "POST" and next_due:
         if str(next_due.id) == request.POST.get("payment_id"):
             next_due.due_date = request.POST.get("due_date") or next_due.due_date
+            next_due.paid_date = request.POST.get("paid_date") or next_due.paid_date
             next_due.amount = request.POST.get("amount") or next_due.amount
             next_due.received_by = (
                 request.POST.get("received_by") or next_due.received_by
@@ -51,7 +52,6 @@ def booking_detail(request, booking_id):
 
             if "mark_paid" in request.POST:
                 next_due.is_paid = True
-                next_due.paid_date = timezone.now().date()
                 messages.success(request, "✅ Payment marked as paid successfully!")
             else:
                 messages.success(request, "✅ Payment updated successfully!")

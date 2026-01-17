@@ -4,6 +4,8 @@ from django.forms import modelformset_factory
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from django.utils.dateparse import parse_date
+from django.utils import timezone
 
 from .models import Expense, ExpenseCategory
 from .forms import ExpenseForm, ExpenseCategoryForm
@@ -25,17 +27,29 @@ def expense_list(request):
     date_from = request.GET.get("date_from")
     date_to = request.GET.get("date_to")
 
+    # Defaults: show current month's range when no filters provided
+    today = timezone.now().date()
+    if not date_to or (isinstance(date_to, str) and not date_to.strip()):
+        date_to = today.isoformat()
+    if not date_from or (isinstance(date_from, str) and not date_from.strip()):
+        date_from = today.replace(day=1).isoformat()
+
     if category_id:
         expenses = expenses.filter(category_id=category_id)
 
     if source_id:
         expenses = expenses.filter(source_id=source_id)
 
-    if date_from:
-        expenses = expenses.filter(date__gte=date_from)
+    # Use parse_date to safely parse incoming date strings and ignore invalid values
+    if date_from and isinstance(date_from, str) and date_from.lower() != "none":
+        parsed = parse_date(date_from)
+        if parsed:
+            expenses = expenses.filter(date__gte=parsed)
 
-    if date_to:
-        expenses = expenses.filter(date__lte=date_to)
+    if date_to and isinstance(date_to, str) and date_to.lower() != "none":
+        parsed = parse_date(date_to)
+        if parsed:
+            expenses = expenses.filter(date__lte=parsed)
     # Compute totals by type: treat 'expense' and 'debit' as debits, 'credit' as credits
     debit_total = (
         expenses.filter(type__in=["expense", "debit"]).aggregate(total=Sum("amount"))[
@@ -79,11 +93,15 @@ def download_expenses_pdf(request):
     if source_id and source_id.isdigit():
         expenses = expenses.filter(source_id=int(source_id))
 
-    # ✅ Filter: Date Range
-    if date_from:
-        expenses = expenses.filter(date__gte=date_from)
-    if date_to:
-        expenses = expenses.filter(date__lte=date_to)
+    # ✅ Filter: Date Range (sanitize inputs like 'None')
+    if date_from and date_from.lower() != "none":
+        parsed = parse_date(date_from)
+        if parsed:
+            expenses = expenses.filter(date__gte=parsed)
+    if date_to and date_to.lower() != "none":
+        parsed = parse_date(date_to)
+        if parsed:
+            expenses = expenses.filter(date__lte=parsed)
 
     # ---------- PDF GENERATION ----------
     response = HttpResponse(content_type="application/pdf")

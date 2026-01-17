@@ -36,8 +36,17 @@ def expense_list(request):
 
     if date_to:
         expenses = expenses.filter(date__lte=date_to)
-
-    total_expense = expenses.aggregate(total=Sum("amount"))["total"] or 0
+    # Compute totals by type: treat 'expense' and 'debit' as debits, 'credit' as credits
+    debit_total = (
+        expenses.filter(type__in=["expense", "debit"]).aggregate(total=Sum("amount"))[
+            "total"
+        ]
+        or 0
+    )
+    credit_total = (
+        expenses.filter(type="credit").aggregate(total=Sum("amount"))["total"] or 0
+    )
+    total_expense = debit_total - credit_total
 
     context = {
         "expenses": expenses,
@@ -118,7 +127,8 @@ def download_expenses_pdf(request):
     p.drawString(50, y, "Date")
     p.drawString(110, y, "Title")
     p.drawString(250, y, "Category")
-    p.drawString(360, y, "Source")
+    p.drawString(320, y, "Type")
+    p.drawString(400, y, "Source")
     p.drawString(470, y, "Amount")
     y -= 15
     p.line(50, y, 550, y)
@@ -139,10 +149,16 @@ def download_expenses_pdf(request):
         p.drawString(50, y, str(exp.date))
         p.drawString(110, y, exp.title[:25])
         p.drawString(250, y, category_name[:15])
-        p.drawString(360, y, source_name[:15])
-        p.drawRightString(540, y, f"Rs {exp.amount}")
+        p.drawString(320, y, exp.get_type_display()[:8])
+        p.drawString(400, y, source_name[:15])
+        # Show amount and adjust total based on type
+        display_amount = f"Rs {exp.amount}"
+        p.drawRightString(540, y, display_amount)
         y -= 15
-        total_amount += exp.amount or 0
+        if exp.type in ("expense", "debit"):
+            total_amount += exp.amount or 0
+        else:
+            total_amount -= exp.amount or 0
 
     # Total
     y -= 15

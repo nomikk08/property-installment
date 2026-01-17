@@ -6,10 +6,19 @@ from bookings.models import PaymentSource
 class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
-        fields = ["title", "category", "amount", "source", "date", "description"]
+        fields = [
+            "title",
+            "category",
+            "type",
+            "amount",
+            "source",
+            "date",
+            "description",
+        ]
         widgets = {
             "title": forms.TextInput(attrs={"class": "border rounded p-2 w-full"}),
             "category": forms.Select(attrs={"class": "border rounded p-2 w-full"}),
+            "type": forms.Select(attrs={"class": "border rounded p-2 w-full"}),
             "amount": forms.NumberInput(attrs={"class": "border rounded p-2 w-full"}),
             "source": forms.Select(attrs={"class": "border rounded p-2 w-full"}),
             "date": forms.DateInput(

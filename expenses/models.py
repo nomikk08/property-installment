@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from decimal import Decimal
 from bookings.models import PaymentSource
 
 
@@ -19,6 +20,12 @@ class Expense(models.Model):
         ExpenseCategory, on_delete=models.CASCADE, related_name="expenses"
     )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    TYPE_CHOICES = [
+        ("expense", "Expense"),
+        ("debit", "Debit"),
+        ("credit", "Credit"),
+    ]
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES, default="expense")
     source = models.ForeignKey(
         PaymentSource,
         on_delete=models.SET_NULL,
@@ -33,3 +40,16 @@ class Expense(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.amount}"
+
+    @property
+    def signed_amount(self):
+        """Return amount with sign according to `type`.
+
+        - `expense`/`debit` are treated as positive debits (outflow)
+        - `credit` is treated as positive credit (inflow)
+
+        Callers can compute net by subtracting credits from debits.
+        """
+        if self.type == "credit":
+            return Decimal(self.amount)
+        return Decimal(self.amount)

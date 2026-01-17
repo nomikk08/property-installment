@@ -23,15 +23,19 @@ def create_credit_transaction(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Expense)
 def create_debit_transaction(sender, instance, created, **kwargs):
-    if created:
-        Transaction.objects.create(
-            date=instance.date,
-            type="debit",
-            amount=instance.amount,
-            description=f"{instance.title} ({instance.category.name})",
-            related_expense=instance,
-            source=instance.source,
-        )
+    # Map Expense.type to Transaction.type: 'credit' -> 'credit', others -> 'debit'
+    tx_type = "credit" if getattr(instance, "type", None) == "credit" else "debit"
+
+    Transaction.objects.update_or_create(
+        related_expense=instance,
+        defaults={
+            "date": instance.date,
+            "type": tx_type,
+            "amount": instance.amount,
+            "description": f"{instance.title} ({instance.category.name})",
+            "source": instance.source,
+        },
+    )
 
 
 @receiver(post_save, sender=Booking)
